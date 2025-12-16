@@ -1,0 +1,42 @@
+<div id="assistant" [class.active]="isActive" [class.fullscreen]="isFullscreen">
+    <button id="assistant-toggle" (click)="toggleAssistant()">
+        <span class="material-symbols-outlined">chat_bubble</span>
+    </button>
+    <div id="assistant-window">
+        <header id="chat-header">
+            <h2>ROCm Assistant</h2>
+            <div id="chat-header-controls">
+                <button id="chat-clear" class="chat-control-button" (click)="clearChat()" title="Clear Chat">
+                    <span class="material-symbols-outlined">refresh</span>
+                </button>
+                <button id="chat-maximize" class="chat-control-button" (click)="maximize()" title="Maximize">
+                    <span class="material-symbols-outlined">expand_content</span>
+                </button>
+                <button id="chat-minimize" class="chat-control-button" (click)="minimize()" title="Minimize">
+                    <span class="material-symbols-outlined">collapse_content</span>
+                </button>
+                <button id="chat-close" class="chat-control-button" (click)="toggleAssistant()" title="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </header>
+        <ul id="chat-body" #chatBody>
+            @for (msg of messages; track $index) {
+                <li class="chat-message" [class.outgoing]="msg.type === 'outgoing'" [class.incoming]="msg.type === 'incoming'" [innerHTML]="msg.content"></li>
+            }
+            @if (isAwaiting) {
+                <li class="chat-message incoming">
+                    <p>Awaiting...</p>
+                </li>
+            }
+        </ul>
+        <div id="chat-footer">
+            <div>
+                <textarea id="user-input" [(ngModel)]="userInput" placeholder="Ask anything about ROCm"></textarea>
+                <button id="send-button" (click)="sendMessage()" [disabled]="!userInput.trim()">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
