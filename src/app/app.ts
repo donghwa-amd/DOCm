@@ -1,10 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { ChatbotComponent } from './chatbot/chatbot.component';
+import { WindowComponent } from './assistant/window.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ChatbotComponent],
+  imports: [WindowComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

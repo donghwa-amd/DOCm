@@ -4,7 +4,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 @Injectable({
   providedIn: 'root'
 })
-export class ChatApiService {
+export class ApiService {
   private readonly API_URL = (window as any).CHATBOT_SOURCE || 'http://localhost:8000';
   private readonly CHAT_TIMEOUT = 30000;
   private readonly CLEAR_TIMEOUT = 15000;

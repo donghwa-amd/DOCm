@@ -1,0 +1,59 @@
+#message-input {
+    display: flex;
+    width: 100%;
+    height: fit-content;
+    background-clip: content-box;
+    background-color: var(--pst-color-on-background);
+    border-radius: 2em;
+    border: var(--pst-color-border) 1px solid;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#text-input {
+    box-sizing: border-box;
+    padding: 0 24px;
+    margin: 1em 0;
+    line-height: 2em;
+    max-height: 10em;
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    overflow-y: auto;
+    background: transparent;
+}
+
+#text-input:valid ~ #send-button {
+    visibility: visible;
+    color: var(--pst-color-surface);
+    background: var(--pst-color-on-surface);
+    border: none;
+    pointer-events: auto;
+}
+
+#send-button {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    min-width: 3em;
+    max-width: 3em;
+    min-height: 3em;
+    max-height: 3em;
+    margin: 0.5em;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    transition: 0.1s;
+    pointer-events: none;
+    align-self: flex-end;
+    display: flex;
+    background: var(--pst-color-surface);
+    color: var(--pst-color-on-surface);
+    border: 1px solid var(--pst-color-border);
+    align-items: center;
+}
+
+#send-button span {
+    font-size: 2em;
+    margin: auto;
+}

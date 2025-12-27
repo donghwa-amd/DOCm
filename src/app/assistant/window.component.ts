@@ -1,8 +1,11 @@
-import { Component, ElementRef, ViewChild, AfterViewChecked, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { marked } from 'marked';
-import { ChatStorageService } from './services/chat-storage.service';
-import { ChatApiService } from './services/chat-api.service';
+import { StorageService } from './services/storage.service';
+import { ApiService } from './services/api.service';
+import { ControlsComponent } from './controls/controls.component';
+import { MessageListComponent } from './conversation/message-list.component';
+import { MessageInputComponent } from './conversation/message-input.component';
 
 interface ChatMessage {
   type: 'incoming' | 'outgoing';
@@ -12,17 +15,21 @@ interface ChatMessage {
 @Component({
   selector: 'app-chatbot',
   standalone: true,
-  imports: [FormsModule],
-  templateUrl: './chatbot.component.html',
-  styleUrl: './chatbot.component.css',
+  imports: [FormsModule, ControlsComponent, MessageListComponent, MessageInputComponent],
+  templateUrl: './window.component.html',
+  styleUrl: './window.component.css',
   encapsulation: ViewEncapsulation.None
 })
-export class ChatbotComponent implements OnInit, AfterViewChecked {
-  @ViewChild('chatBody') private chatBody!: ElementRef;
-
+export class WindowComponent implements OnInit {
+  /**
+   * Whether the assistant window is active (visible). When the window is
+   * inactive, only the toggle button is shown.
+   */
   isActive = false;
+  /**
+   * Whether the assistant window is in fullscreen mode.
+   */
   isFullscreen = false;
-  userInput = '';
   messages: ChatMessage[] = [];
   isAwaiting = false;
 
@@ -31,8 +38,8 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
     "<p>How can I assist you today?</p>";
 
   constructor(
-    private chatStorage: ChatStorageService,
-    private chatApi: ChatApiService
+    private chatStorage: StorageService,
+    private chatApi: ApiService
   ) {
     marked.use({ breaks: true });
   }
@@ -41,25 +48,18 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
     await this.loadChat();
   }
 
-  ngAfterViewChecked() {
-    this.scrollToBottom();
-  }
-
-  scrollToBottom(): void {
-    try {
-      this.chatBody.nativeElement.scrollTop = this.chatBody.nativeElement.scrollHeight;
-    } catch(err) { }
-  }
-
-  toggleAssistant() {
+  toggleWindow() {
     this.isActive = !this.isActive;
+    if (this.isFullscreen) {
+      this.isFullscreen = false;
+    }
   }
 
-  maximize() {
+  maximizeWindow() {
     this.isFullscreen = true;
   }
 
-  minimize() {
+  minimizeWindow() {
     this.isFullscreen = false;
   }
 
@@ -72,18 +72,8 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
     await this.chatStorage.clearDatabase();
   }
 
-  onEnter(event: any) {
-    if (!event.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
-    }
-  }
-
-  async sendMessage() {
-    const message = this.userInput.trim();
-    if (!message) return;
-
-    this.userInput = '';
+  async sendMessage(message: string) {
+    if (!message.trim()) return;
     
     const outgoingMsg: ChatMessage = { type: 'outgoing', content: this.groupParagraphs(this.inlineCode(message)) };
     this.messages.push(outgoingMsg);

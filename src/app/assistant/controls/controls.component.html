@@ -1,0 +1,31 @@
+<div id="controls">
+    <control-button 
+        buttonId="clear" 
+        icon="refresh" 
+        title="Clear Chat" 
+        (action)="onClear()">
+    </control-button>
+    
+    @if (isFullscreen) {
+        <control-button 
+            buttonId="minimize" 
+            icon="collapse_content" 
+            title="Minimize" 
+            (action)="onMinimize()">
+        </control-button>
+    } @else {
+        <control-button 
+            buttonId="maximize" 
+            icon="expand_content" 
+            title="Maximize" 
+            (action)="onMaximize()">
+        </control-button>
+    }
+    
+    <control-button 
+        buttonId="close" 
+        icon="close" 
+        title="Close" 
+        (action)="onClose()">
+    </control-button>
+</div>

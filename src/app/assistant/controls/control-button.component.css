@@ -1,0 +1,26 @@
+.control-button {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    transition: 0.1s;
+    display: flex;
+    color: var(--pst-color-border);
+    border: transparent;
+    align-items: center;
+    background: transparent;
+    justify-content: center;
+}
+
+.control-button:hover {
+    background-color: rgba(0,0,0,0.05);
+    color: #333;
+}
+
+.control-button .material-symbols-outlined {
+    font-size: 20px;
+}

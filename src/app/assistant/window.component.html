@@ -1,0 +1,30 @@
+<div id="assistant" [class.active]="isActive" [class.fullscreen]="isFullscreen">
+    <button id="toggle" (click)="toggleWindow()">
+        <span class="material-symbols-outlined">chat_bubble</span>
+    </button>
+    <div id="window">
+        <header id="header">
+            <h2>ROCm Assistant</h2>
+            <controls 
+                [isFullscreen]="isFullscreen"
+                (clear)="clearChat()"
+                (maximize)="maximizeWindow()"
+                (minimize)="minimizeWindow()"
+                (close)="toggleWindow()">
+            </controls>
+        </header>
+        
+        <body id="body">
+            <message-list 
+                [messages]="messages" 
+                [isAwaiting]="isAwaiting">
+            </message-list>
+        </body>
+
+        <footer id="footer">
+            <message-input 
+                (send)="sendMessage($event)">
+            </message-input>
+        </footer>
+    </div>
+</div>

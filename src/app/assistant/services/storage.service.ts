@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
-export class ChatStorageService {
+export class StorageService {
   private readonly CHAT_HISTORY_DB = "chat_database";
   private readonly CHAT_HISTORY_STORE = "chat_history";
   private readonly CHAT_SESSION_STORE = "chat_session";
