@@ -12,6 +12,12 @@ interface ChatMessage {
   content: string;
 }
 
+/**
+ * The Assistant window component containing the chat interface.
+ * 
+ * The entrypoint for the Documentation assistant chatbot UI, including all
+ * subcomponents and logic for managing chat state and interactions.
+ */
 @Component({
   selector: 'app-chatbot',
   standalone: true,
@@ -30,8 +36,8 @@ export class WindowComponent implements OnInit {
    * Whether the assistant window is in fullscreen mode.
    */
   isFullscreen = false;
-  messages: ChatMessage[] = [];
   isAwaiting = false;
+  messages: ChatMessage[] = [];
 
   private readonly welcomeMessage = 
     "<p>Welcome to the ROCm Documentation!</p>" +
