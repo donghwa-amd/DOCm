@@ -16,19 +16,19 @@
     gap: 12px;
 }
 
-.message.outgoing {
+.message[data-turn="user"] {
     max-width: 80%;
     color: var(--pst-color-on-surface);
     background: var(--pst-color-surface);
     align-self: flex-end;
 }
 
-.message.incoming {
+.message[data-turn="assistant"] {
     max-width: 100%;
     color: var(--pst-color-text-base);
 }
 
-.message.incoming code {
+.message[data-turn="assistant"] code {
     background: var(--pst-color-surface);
     border-radius: .25rem;
 }

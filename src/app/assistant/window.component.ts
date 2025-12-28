@@ -6,11 +6,7 @@ import { ApiService } from './services/api.service';
 import { ControlsComponent } from './controls/controls.component';
 import { MessageListComponent } from './conversation/message-list.component';
 import { MessageInputComponent } from './conversation/message-input.component';
-
-interface ChatMessage {
-  type: 'incoming' | 'outgoing';
-  content: string;
-}
+import { MessageAuthor, ChatMessage, UserMessage, AssistantMessage } from './models';
 
 /**
  * The Assistant window component containing the chat interface.
@@ -71,86 +67,73 @@ export class WindowComponent implements OnInit {
 
   async clearChat() {
     this.messages = [];
-    this.messages.push({ type: 'incoming', content: this.welcomeMessage });
+    this.messages.push(new AssistantMessage(this.welcomeMessage));
     
     const sessionId = await this.chatStorage.getChatId();
     await this.chatApi.clearHistory(sessionId);
     await this.chatStorage.clearDatabase();
   }
 
-  async sendMessage(message: string) {
-    if (!message.trim()) return;
+  async sendMessage(userInput: string) {
+    if (!userInput.trim())
+      return;
     
-    const outgoingMsg: ChatMessage = { type: 'outgoing', content: this.groupParagraphs(this.inlineCode(message)) };
-    this.messages.push(outgoingMsg);
-    await this.chatStorage.saveChatMessage(outgoingMsg.content, 'outgoing');
+    const parsedInput: string = await marked.parse(userInput);
+    const userMessage = new UserMessage(parsedInput);
+    this.messages.push(userMessage);
+    await this.chatStorage.saveChatMessage(userMessage);
 
     this.isAwaiting = true;
     
-    const sessionId = await this.chatStorage.getChatId();
-    const url = window.location.href;
+    let assistantOutput: string = "";
+    const assistantMessage = new AssistantMessage("");
+    this.messages.push(assistantMessage);
     
-    let accumulated = "";
-    let currentIncomingMsg: ChatMessage | null = null;
-
+    const url: string = window.location.href;
     try {
-        const response = await this.chatApi.generateResponse(message, sessionId, url, async (chunk) => {
-            if (!currentIncomingMsg) {
-                this.isAwaiting = false;
-                currentIncomingMsg = { type: 'incoming', content: '' };
-                this.messages.push(currentIncomingMsg);
-            }
-            accumulated += chunk;
-            
-            const parsed = await marked.parse(accumulated);
-            if (currentIncomingMsg) {
-                currentIncomingMsg.content = parsed;
-            }
-        });
+      const sessionId: string = await this.chatStorage.getChatId();
+      const response = await this.chatApi.generateResponse(
+        userInput,
+        sessionId,
+        url,
+        // async (chunk) => {
+        //   if (!assistantOutput) {
+        //     this.isAwaiting = false;
+        //   }
+        //   assistantOutput += chunk;
 
-        if (response.session_id && sessionId !== response.session_id) {
-            await this.chatStorage.saveChatId(response.session_id);
-        }
-        
-        if (currentIncomingMsg) {
-        } else if (response.content && !currentIncomingMsg) {
-             const parsed = await marked.parse(response.content);
-             const msg: ChatMessage = { type: 'incoming', content: parsed };
-             this.messages.push(msg);
-             await this.chatStorage.saveChatMessage(msg.content, 'incoming');
-        }
+        //   // only re-parse entire markdown on newlines, otherwise appended raw
+        //   if (chunk.includes("\n")) {
+        //     const parsedOutput: string = await marked.parse(assistantOutput);
+        //     assistantMessage.content = parsedOutput;
+        //   }
+        //   else {
+        //     assistantMessage.content += chunk;
+        //   }
+        // }
+      );
 
-    } catch (e) {
-        console.error(e);
-        if (!currentIncomingMsg) {
-             this.messages.push({ type: 'incoming', content: "Sorry, the request timed out or failed. Please try again." });
-        }
-    } finally {
-        this.isAwaiting = false;
+      if (response.session_id && sessionId !== response.session_id) {
+        await this.chatStorage.saveChatId(response.session_id);
+      }
+
+      // final update, since last chunk may not contain newline
+      assistantMessage.content = await marked.parse(response.content);
+      await this.chatStorage.saveChatMessage(assistantMessage);
     }
-  }
-
-  private groupParagraphs(text: string): string {
-    return text
-        .split(/\r?\n/)
-        .filter(line => line.trim() !== "")
-        .map(line => `<p>${line}</p>`)
-        .join("");
-  }
-
-  private inlineCode(text: string): string {
-    return text.replace(/`([^`]+)`/g, (_, code) => `<code>${code}</code>`);
+    catch (e) {
+      assistantMessage.content = "Sorry, the request timed out or failed. Please try again.";
+    }
+    finally {
+      this.isAwaiting = false;
+    }
   }
 
   private async loadChat() {
     const messages = await this.chatStorage.getChatMessages();
+    this.messages = [new AssistantMessage(this.welcomeMessage)];
     if (messages && messages.length > 0) {
-        this.messages = [{ type: 'incoming', content: this.welcomeMessage }];
-        for (const msg of messages) {
-            this.messages.push({ type: msg.type, content: msg.message });
-        }
-    } else {
-        this.messages = [{ type: 'incoming', content: this.welcomeMessage }];
+      this.messages.push(...messages);
     }
   }
 }

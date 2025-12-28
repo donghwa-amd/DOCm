@@ -1,13 +1,12 @@
 <ul id="message-list" #messageList>
-    @for (msg of messages; track $index) {
-        <li class="message" 
-            [class.outgoing]="msg.type === 'outgoing'" 
-            [class.incoming]="msg.type === 'incoming'" 
-            [innerHTML]="msg.content">
+    @for (message of messages; track $index) {
+        <li class="message"
+            [attr.data-turn]="message.turn"
+            [innerHTML]="message.content">
         </li>
     }
     @if (isAwaiting) {
-        <li class="message incoming">
+        <li class="message" data-turn="assistant">
             <p>Awaiting...</p>
         </li>
     }
