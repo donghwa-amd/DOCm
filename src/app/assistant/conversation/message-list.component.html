@@ -1,13 +1,15 @@
-<ul id="message-list" #messageList>
-    @for (message of messages; track $index) {
-        <li class="message"
+<div id="message-list-scroller">
+    <ul id="message-list">
+        @for (message of messages; track $index) {
+            <li class="message"
             [attr.data-turn]="message.turn"
             [innerHTML]="message.content">
         </li>
-    }
-    @if (isAwaiting) {
-        <li class="message" data-turn="assistant">
-            <p>Awaiting...</p>
-        </li>
-    }
-</ul>
+        }
+        @if (isAwaiting) {
+            <li class="message" data-turn="assistant">
+                <p>Awaiting...</p>
+            </li>
+        }
+    </ul>
+</div>

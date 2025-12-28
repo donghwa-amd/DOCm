@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,18 +8,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule]
 })
-export class MessageListComponent implements AfterViewChecked {
+export class MessageListComponent {
   @Input() messages: any[] = [];
   @Input() isAwaiting: boolean = false;
-  @ViewChild('messageList') private messageList!: ElementRef;
-
-  ngAfterViewChecked() {
-    this.scrollToBottom();
-  }
-
-  private scrollToBottom(): void {
-    const messageListElement: HTMLElement = this.messageList.nativeElement;
-
-    messageListElement.scrollTop = messageListElement.scrollHeight;
-  }
 }
