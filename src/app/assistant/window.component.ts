@@ -1,12 +1,11 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { marked } from 'marked';
 import { StorageService } from './services/storage.service';
 import { ApiService } from './services/api.service';
 import { ControlsComponent } from './controls/controls.component';
 import { MessageListComponent } from './conversation/message-list.component';
 import { MessageInputComponent } from './conversation/message-input.component';
-import { MessageAuthor, ChatMessage, UserMessage, AssistantMessage } from './models';
+import { ChatMessage, UserMessage, AssistantMessage } from './models';
 
 /**
  * The Assistant window component containing the chat interface.
@@ -17,7 +16,7 @@ import { MessageAuthor, ChatMessage, UserMessage, AssistantMessage } from './mod
 @Component({
   selector: 'app-chatbot',
   standalone: true,
-  imports: [FormsModule, ControlsComponent, MessageListComponent, MessageInputComponent],
+  imports: [ControlsComponent, MessageListComponent, MessageInputComponent],
   templateUrl: './window.component.html',
   styleUrl: './window.component.css',
   encapsulation: ViewEncapsulation.None
@@ -90,43 +89,38 @@ export class WindowComponent implements OnInit {
     this.messages.push(assistantMessage);
     
     const url: string = window.location.href;
-    try {
-      const sessionId: string = await this.chatStorage.getChatId();
-      const response = await this.chatApi.generateResponse(
-        userInput,
-        sessionId,
-        url,
-        // async (chunk) => {
-        //   if (!assistantOutput) {
-        //     this.isAwaiting = false;
-        //   }
-        //   assistantOutput += chunk;
+    const sessionId: string = await this.chatStorage.getChatId();
+    const validatedSessionId = await this.chatApi.generateResponse(
+      userInput,
+      sessionId,
+      url,
+      async (chunk: string) => {
+        console.log(chunk);
+        if (!assistantOutput) {
+          this.isAwaiting = false;
+        }
+        assistantOutput += chunk;
 
-        //   // only re-parse entire markdown on newlines, otherwise appended raw
-        //   if (chunk.includes("\n")) {
-        //     const parsedOutput: string = await marked.parse(assistantOutput);
-        //     assistantMessage.content = parsedOutput;
-        //   }
-        //   else {
-        //     assistantMessage.content += chunk;
-        //   }
-        // }
-      );
-
-      if (response.session_id && sessionId !== response.session_id) {
-        await this.chatStorage.saveChatId(response.session_id);
+        // only re-parse entire markdown on newlines, otherwise appended raw
+        if (chunk.includes("\n")) {
+          const parsedOutput: string = await marked.parse(assistantOutput);
+          assistantMessage.content = parsedOutput;
+        }
+        else {
+          assistantMessage.content += chunk;
+        }
       }
+    );
 
-      // final update, since last chunk may not contain newline
-      assistantMessage.content = await marked.parse(response.content);
-      await this.chatStorage.saveChatMessage(assistantMessage);
+    if (validatedSessionId && sessionId !== validatedSessionId) {
+      await this.chatStorage.saveChatId(validatedSessionId);
     }
-    catch (e) {
-      assistantMessage.content = "Sorry, the request timed out or failed. Please try again.";
-    }
-    finally {
-      this.isAwaiting = false;
-    }
+
+    // final update, since last chunk may not contain newline
+    assistantMessage.content = await marked.parse(assistantOutput);
+    await this.chatStorage.saveChatMessage(assistantMessage);
+
+    this.isAwaiting = false;
   }
 
   private async loadChat() {

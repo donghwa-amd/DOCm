@@ -5,7 +5,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_URL = (window as any).CHATBOT_SOURCE || 'http://localhost:8000';
+  private readonly API_URL = (window as any).API_ENDPOINT;
   private readonly CHAT_TIMEOUT = 30000;
   private readonly CLEAR_TIMEOUT = 15000;
 
@@ -13,28 +13,13 @@ export class ApiService {
     query: string,
     sessionId: string,
     url: string,
-    onChunk: null | ((chunk: string) => void) = null
-  ): Promise<{ content: string, session_id: string }> {
-    if (onChunk)
-      return this.generateResponseSSE(query, sessionId, url, onChunk);
-    else
-      return this.generateResponseStreaming(query, sessionId, url);
-  }
-
-  private async generateResponseSSE(
-    query: string,
-    sessionId: string,
-    url: string,
-    onChunk: (chunk: string) => void
-  ): Promise<{ content: string, session_id: string }> {
+    onChunk: ((chunk: string) => void | Promise<void>)
+  ): Promise<string> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.CHAT_TIMEOUT);
 
-    let accumulated = "";
-    let validatedSessionId = "";
-
     try {
-      await fetchEventSource(this.API_URL + "/chat", {
+      const response = await fetch(this.API_URL + "/chat/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,94 +31,31 @@ export class ApiService {
           current_url: url
         }),
         signal: controller.signal,
-        async onopen(response) {
-          if (response.ok) {
-            validatedSessionId = response.headers.get("session-id") ?? "";
-          } else if (response.status === 429) {
-            const rateLimitReset = response.headers.get("ratelimit-reset");
-            accumulated = `Sorry, please try again in ${rateLimitReset} seconds.`
-          } else {
-            throw new Error();
-          }
-        },
-        onmessage(msg) {
-          const chunk = msg.data;
-          const text = JSON.parse(chunk);
-          if (text) {
-            accumulated += text;
-            onChunk(text);
-          }
-        },
-        onclose() {
-          accumulated = "The server closed the connection unexpectedly."
-        },
-        onerror(err) {
-          throw err;
-        }
-      });
-      clearTimeout(timeoutId);
-      return { content: accumulated, session_id: validatedSessionId };
-    } catch (e: any) {
-      if (controller.signal.aborted) {
-        return {
-          content: "Sorry, the request timed out. Please try again.",
-          session_id: ""
-        };
-      }
-      clearTimeout(timeoutId);
-      throw e;
-    }
-  }
-
-  private async generateResponseStreaming(
-    query: string,
-    sessionId: string,
-    url: string
-  ): Promise<{ content: string, session_id: string }> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.CHAT_TIMEOUT);
-
-    try {
-      const response = await fetch(this.API_URL + "/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          content: query,
-          session_id: sessionId,
-          current_url: url
-        }),
-        signal: controller.signal
       });
       clearTimeout(timeoutId);
 
       if (response.status === 429) {
-        return {
-          content: "Sorry, you've sent too many requests. Please wait a moment before trying again.",
-          session_id: ""
-        };
+        onChunk("Sorry, you've sent too many requests. Please wait a moment before trying again.");
+        return ""
       }
-      if (!response.ok) {
-        return {
-          content: "Sorry, the server could not be reached.",
-          session_id: ""
-        };
+      if (!response.ok || !response.body) {
+        onChunk("Sorry, the server could not be reached.");
+        return "";
       }
 
-      return await response.json();
-    } catch (e: any) {
-      clearTimeout(timeoutId);
-      if (e?.name === 'AbortError') {
-        return {
-          content: "Sorry, the request timed out. Please try again.",
-          session_id: ""
-        };
+      const stream = response.body.pipeThrough(new TextDecoderStream());
+      for await (const delta of stream) {
+        onChunk(delta);
       }
-      return {
-        content: "Sorry, the server response could not be processed.",
-        session_id: ""
-      };
+      return response.headers.get("Session-ID") || "";
+    } catch (e: any) {
+      if (controller.signal.aborted) {
+        onChunk("Sorry, the request timed out. Please try again.");
+        return "";
+      }
+      clearTimeout(timeoutId);
+      onChunk("Sorry, the request failed. Please try again.");
+      return "";
     }
   }
 
@@ -142,10 +64,12 @@ export class ApiService {
     const timeoutId = setTimeout(() => controller.abort(), this.CLEAR_TIMEOUT);
 
     try {
-      await fetchEventSource(this.API_URL + "/clear", {
+      await fetch(this.API_URL + "/clear", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
+        headers: {
+          "Content-Type": "application/json",
+          "Session-ID": sessionId
+        },
         signal: controller.signal
       });
       clearTimeout(timeoutId);
