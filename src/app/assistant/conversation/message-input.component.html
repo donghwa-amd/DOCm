@@ -1,15 +1,18 @@
 <div id="message-input">
-    <textarea
+    <textarea id="text-input"
         #textInput
-        id="text-input"
         [(ngModel)]="userInput"
         (input)="adjustHeight()"
         (keydown.enter)="onEnter($event)"
         placeholder="Ask anything about ROCm"
         rows="1"
         required
-    ></textarea>
-    <button id="send-button" (click)="onSend()" [disabled]="!userInput.trim()">
+        [disabled]="isAwaiting">
+    </textarea>
+    <button id="send-button"
+        (click)="onSend()"
+        [disabled]="!userInput.trim() || isAwaiting"
+    >
         <span class="material-symbols-outlined">send</span>
     </button>
 </div>

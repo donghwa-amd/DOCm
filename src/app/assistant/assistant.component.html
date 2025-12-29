@@ -1,4 +1,7 @@
-<div id="assistant" [class.active]="isActive" [class.fullscreen]="isFullscreen">
+<div id="assistant"
+    [class.active]="isActive"
+    [class.fullscreen]="isFullscreen"
+>
     <button id="toggle" (click)="toggleWindow()">
         <span class="material-symbols-outlined">chat_bubble</span>
     </button>
@@ -23,6 +26,7 @@
 
         <footer id="footer">
             <message-input 
+                [isAwaiting]="assistantResponseStream.isLoading()"
                 (send)="onSend($event)">
             </message-input>
         </footer>

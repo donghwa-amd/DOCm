@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ViewChild, ElementRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
   imports: [FormsModule]
 })
 export class MessageInputComponent {
+  @Input() isAwaiting: boolean = false;
   @Output() send = new EventEmitter<string>();
   @ViewChild('textInput') textarea!: ElementRef;
   userInput: string = '';

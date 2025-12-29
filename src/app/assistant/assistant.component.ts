@@ -28,11 +28,12 @@ export class AssistantComponent implements OnInit {
    * inactive, only the toggle button is shown.
    */
   isActive = false;
+
   /**
    * Whether the assistant window is in fullscreen mode.
    */
   isFullscreen = false;
-  isAwaiting = false;
+
   /**
    * The list of chat messages in the current session.
    * 
