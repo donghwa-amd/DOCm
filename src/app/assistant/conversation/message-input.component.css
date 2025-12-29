@@ -10,6 +10,13 @@
     flex-shrink: 0;
 }
 
+#message-input[aria-disabled="true"] {
+    background: var(--pst-color-border);
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 #text-input {
     box-sizing: border-box;
     padding: 0 24px;

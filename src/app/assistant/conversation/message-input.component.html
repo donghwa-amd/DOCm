@@ -1,4 +1,4 @@
-<div id="message-input">
+<div id="message-input" [attr.aria-disabled]="isAwaiting">
     <textarea id="text-input"
         #textInput
         [(ngModel)]="userInput"
