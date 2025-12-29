@@ -1,4 +1,5 @@
-:host {
+/* for custom element tag for the Angular component */
+message-list {
     height: 100%;
 }
 
