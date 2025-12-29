@@ -19,7 +19,7 @@
     flex-direction: column;
 }
 
-.message {
+#message-list .message {
     width: fit-content;
     padding: 12px 16px;
     border-radius: 10px;
@@ -29,43 +29,43 @@
     gap: 12px;
 }
 
-.message[data-turn="user"] {
+#message-list .message code {
+    font-size: .875em;
+    font-weight: 500;
+    padding: .15rem .3rem;
+}
+
+#message-list .message p {
+    overflow-wrap: break-word;
+    margin-bottom: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+#message-list .message pre {
+    margin: 0;
+}
+
+#message-list .message pre code {
+    font-size: 1em;
+}
+
+#message-list .message :is(hr, h1, h2, h3, h4, h5, h6) {
+    margin: 0.25em 0;
+}
+
+#message-list .message[data-turn="user"] {
     max-width: 80%;
     color: var(--pst-color-on-surface);
     background: var(--pst-color-surface);
     align-self: flex-end;
 }
 
-.message[data-turn="assistant"] {
+#message-list .message[data-turn="assistant"] {
     max-width: 100%;
     color: var(--pst-color-text-base);
 }
 
-.message[data-turn="assistant"] code {
+#message-list .message[data-turn="assistant"] code {
     background: var(--pst-color-surface);
     border-radius: .25rem;
-}
-
-.message code {
-    font-size: .875em;
-    font-weight: 500;
-    padding: .15rem .3rem;
-}
-
-.message p {
-    overflow-wrap: break-word;
-    margin-bottom: 0.25rem;
-    margin-top: 0.25rem;
-}
-    
-.message pre {
-    margin: 0;
-}
-
-.message pre code {
-    font-size: 1em;
-}
-
-.message :is(hr, h1, h2, h3, h4, h5, h6) {
-    margin: 0.25em 0;
 }
