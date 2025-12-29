@@ -15,7 +15,10 @@ export class StorageService {
       const request = indexedDB.open(this.CHAT_HISTORY_DB);
       request.onupgradeneeded = (event: any) => {
         const database = request.result;
-        database.createObjectStore(this.CHAT_HISTORY_STORE, { keyPath: "id", autoIncrement: true });
+        database.createObjectStore(
+          this.CHAT_HISTORY_STORE,
+          { keyPath: "id", autoIncrement: true }
+        );
         database.createObjectStore(this.CHAT_SESSION_STORE);
       };
       request.onsuccess = () => resolve(request.result);
@@ -52,20 +55,17 @@ export class StorageService {
   }
 
   async getChatMessages(): Promise<ChatMessage[]> {
-    const database = await this.openChatHistoryDatabase();
-    const store = database
+    const database: IDBDatabase = await this.openChatHistoryDatabase();
+    const store: IDBObjectStore = database
       .transaction(this.CHAT_HISTORY_STORE, "readonly")
       .objectStore(this.CHAT_HISTORY_STORE);
-    const request = store.getAll();
-    return new Promise((resolve, reject) => {
+    const request: IDBRequest<ChatMessage[]> = store.getAll();
+    return new Promise((resolve) => {
       request.onsuccess = () => {
-        const results = request.result;
-        const messages: ChatMessage[] = results.filter((item: any) => {
-          typeof item.turn === 'string' && typeof item.content === 'string'
-        });
+        const messages: ChatMessage[] = request.result;
         resolve(messages);
       };
-      request.onerror = () => reject(request.error);
+      request.onerror = () => resolve([]);
     });
   }
 

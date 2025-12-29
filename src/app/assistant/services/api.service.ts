@@ -46,7 +46,7 @@ export class ApiService {
       if (!response.ok || !response.body) {
         throw new ChatError('Sorry, the server could not be reached.', {
           status: response.status
-        });`  `
+        });
       }
 
       const validatedSessionId = response.headers.get('Session-ID') || "";
