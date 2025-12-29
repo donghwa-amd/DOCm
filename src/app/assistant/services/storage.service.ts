@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
 import { ChatMessage } from '../shared/models';
 
+enum Datastore {
+  History = "chat_history",
+  Session = "chat_session"
+} 
+
 @Injectable({
   providedIn: 'root'
 })
 export class StorageService {
   private readonly CHAT_HISTORY_DB = "chat_database";
-  private readonly CHAT_HISTORY_STORE = "chat_history";
-  private readonly CHAT_SESSION_STORE = "chat_session";
   private readonly SESSION_ID_KEY = "session_id";
 
   private openChatHistoryDatabase(): Promise<IDBDatabase> {
@@ -16,49 +19,50 @@ export class StorageService {
       request.onupgradeneeded = (event: any) => {
         const database = request.result;
         database.createObjectStore(
-          this.CHAT_HISTORY_STORE,
+          Datastore.History,
           { keyPath: "id", autoIncrement: true }
         );
-        database.createObjectStore(this.CHAT_SESSION_STORE);
+        database.createObjectStore(Datastore.Session);
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
   }
 
-  async saveChatId(id: string) {
+  private async getDatastore(
+    store: Datastore,
+    mode: IDBTransactionMode
+  ): Promise<IDBObjectStore> {
     const database = await this.openChatHistoryDatabase();
-    const store = database
-      .transaction(this.CHAT_SESSION_STORE, "readwrite")
-      .objectStore(this.CHAT_SESSION_STORE);
+    return database
+      .transaction(store, mode)
+      .objectStore(store);
+  }
+
+  async saveChatId(id: string) {
+    const store = await this.getDatastore(Datastore.Session, "readwrite");
     store.put(id, this.SESSION_ID_KEY);
   }
 
   async getChatId(): Promise<string> {
-    const database = await this.openChatHistoryDatabase();
-    const store = database
-      .transaction(this.CHAT_SESSION_STORE, "readonly")
-      .objectStore(this.CHAT_SESSION_STORE);
+    const store = await this.getDatastore(Datastore.Session, "readonly");
     const request = store.get(this.SESSION_ID_KEY);
     return new Promise((resolve) => {
-      request.onsuccess = () => resolve(request.result ?? "");
+      request.onsuccess = () => {
+        console.log(request.result);
+        resolve(request.result ?? "");
+      };
       request.onerror = () => resolve("");
    });
   }
 
   async saveChatMessage(message: ChatMessage) {
-    const database = await this.openChatHistoryDatabase();
-    const store = database
-      .transaction(this.CHAT_HISTORY_STORE, "readwrite")
-      .objectStore(this.CHAT_HISTORY_STORE);
+    const store = await this.getDatastore(Datastore.History, "readwrite");
     store.add(message);
   }
 
   async getChatMessages(): Promise<ChatMessage[]> {
-    const database: IDBDatabase = await this.openChatHistoryDatabase();
-    const store: IDBObjectStore = database
-      .transaction(this.CHAT_HISTORY_STORE, "readonly")
-      .objectStore(this.CHAT_HISTORY_STORE);
+    const store = await this.getDatastore(Datastore.History, "readonly");
     const request: IDBRequest<ChatMessage[]> = store.getAll();
     return new Promise((resolve) => {
       request.onsuccess = () => {
@@ -70,13 +74,8 @@ export class StorageService {
   }
 
   async clearDatabase() {
-    const database = await this.openChatHistoryDatabase();
-    const history = database
-      .transaction(this.CHAT_HISTORY_STORE, "readwrite")
-      .objectStore(this.CHAT_HISTORY_STORE);
-    const session = database
-      .transaction(this.CHAT_SESSION_STORE, "readwrite")
-      .objectStore(this.CHAT_SESSION_STORE);
+    const history = await this.getDatastore(Datastore.History, "readwrite");
+    const session = await this.getDatastore(Datastore.Session, "readwrite");
     
     const p1 = new Promise<void>((resolve, reject) => {
         const req = history.clear();

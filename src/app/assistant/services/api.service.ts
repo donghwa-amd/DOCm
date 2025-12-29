@@ -6,16 +6,16 @@ import { ChatResultStream, ChatError } from '../shared/models';
 })
 export class ApiService {
   private readonly API_URL = (window as any).API_ENDPOINT;
-  private readonly CHAT_TIMEOUT = 30000;
-  private readonly CLEAR_TIMEOUT = 15000;
+  private readonly TIMEOUT = 60000;
 
   async generateResponse(
     query: string,
     sessionId: string,
-    url: string
+    url: string,
+    timeout: number = this.TIMEOUT
   ): Promise<ChatResultStream> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.CHAT_TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
       const response = await fetch(this.API_URL + "/chat/stream", {
@@ -27,9 +27,10 @@ export class ApiService {
         },
         body: JSON.stringify({
           content: query,
-          current_url: url
+          current_url: url,
+          session_id: sessionId // backwards compatibility
         }),
-        signal: controller.signal,
+        signal: timeout ? controller.signal : null,
       });
       clearTimeout(timeoutId);
 
@@ -76,7 +77,7 @@ export class ApiService {
 
   async clearHistory(sessionId: any) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.CLEAR_TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
 
     try {
       await fetch(this.API_URL + "/clear", {
