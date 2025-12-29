@@ -6,9 +6,15 @@
             [innerHTML]="message.content">
         </li>
         }
-        @if (isAwaiting) {
+
+        @if (messageStream.isLoading()) {
             <li class="message" data-turn="assistant">
                 <p>Awaiting...</p>
+            </li>
+        }
+        @else if (messageStream.hasValue() && messageStream.value().trim()) {
+            <li class="message" data-turn="assistant"
+                [innerHTML]="messageStream.value()">
             </li>
         }
     </ul>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { ChatResultStream, ChatError } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -12,9 +12,8 @@ export class ApiService {
   async generateResponse(
     query: string,
     sessionId: string,
-    url: string,
-    onChunk: ((chunk: string) => void | Promise<void>)
-  ): Promise<string> {
+    url: string
+  ): Promise<ChatResultStream> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.CHAT_TIMEOUT);
 
@@ -34,28 +33,44 @@ export class ApiService {
       });
       clearTimeout(timeoutId);
 
+      
       if (response.status === 429) {
-        onChunk("Sorry, you've sent too many requests. Please wait a moment before trying again.");
-        return ""
+        throw new ChatError(
+          "Sorry, you've sent too many requests. Please wait a moment before "
+          + "trying again.",
+          {
+            status: response.status
+          }
+        );
       }
       if (!response.ok || !response.body) {
-        onChunk("Sorry, the server could not be reached.");
-        return "";
+        throw new ChatError('Sorry, the server could not be reached.', {
+          status: response.status
+        });`  `
       }
 
-      const stream = response.body.pipeThrough(new TextDecoderStream());
-      for await (const delta of stream) {
-        onChunk(delta);
-      }
-      return response.headers.get("Session-ID") || "";
+      const validatedSessionId = response.headers.get('Session-ID') || "";
+      const textStream = response.body.pipeThrough(new TextDecoderStream());
+
+      return {
+        sessionId: validatedSessionId,
+        stream: textStream,
+      };
     } catch (e: any) {
-      if (controller.signal.aborted) {
-        onChunk("Sorry, the request timed out. Please try again.");
-        return "";
-      }
       clearTimeout(timeoutId);
-      onChunk("Sorry, the request failed. Please try again.");
-      return "";
+
+      if (e instanceof ChatError)
+        throw e;
+
+      if (controller.signal.aborted) {
+        throw new ChatError('Sorry, the request timed out. Please try again.', {
+          cause: e,
+        });
+      }
+
+      throw new ChatError('Sorry, the request failed. Please try again.', {
+        cause: e,
+      });
     }
   }
 

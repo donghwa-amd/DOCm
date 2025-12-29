@@ -17,13 +17,13 @@
         <body id="body">
             <message-list 
                 [messages]="messages" 
-                [isAwaiting]="isAwaiting">
+                [messageStream]="assistantResponseStream">
             </message-list>
         </body>
 
         <footer id="footer">
             <message-input 
-                (send)="sendMessage($event)">
+                (send)="onSend($event)">
             </message-input>
         </footer>
     </div>

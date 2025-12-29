@@ -1,5 +1,6 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, Resource, ResourceRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChatMessage } from '../models';
 
 @Component({
   selector: 'message-list',
@@ -10,6 +11,6 @@ import { CommonModule } from '@angular/common';
   encapsulation: ViewEncapsulation.None, // for injected styling
 })
 export class MessageListComponent {
-  @Input() messages: any[] = [];
-  @Input() isAwaiting: boolean = false;
+  @Input() messages: ChatMessage[] = [];
+  @Input() messageStream: ResourceRef<string> = {} as ResourceRef<string>;
 }
