@@ -33,7 +33,6 @@ export class ApiService {
         signal: timeout ? controller.signal : null,
       });
       clearTimeout(timeoutId);
-
       
       if (response.status === 429) {
         throw new ChatError(
@@ -75,9 +74,12 @@ export class ApiService {
     }
   }
 
-  async clearHistory(sessionId: any) {
+  async clearHistory(
+    sessionId: string,
+    timeout: number = this.TIMEOUT
+  ): Promise<boolean> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
       await fetch(this.API_URL + "/clear", {
@@ -86,13 +88,18 @@ export class ApiService {
           "Content-Type": "application/json",
           "Session-ID": sessionId
         },
-        signal: controller.signal
+        body: JSON.stringify({
+          session_id: sessionId // backwards compatibility
+        }),
+        signal: timeout ? controller.signal : null,
       });
-      clearTimeout(timeoutId);
       return true;
-    } catch (e) {
-      clearTimeout(timeoutId);
+    }
+    catch (e) {
       return false;
+    }
+    finally {
+      clearTimeout(timeoutId);
     }
   }
 }
