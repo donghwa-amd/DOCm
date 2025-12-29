@@ -1,11 +1,10 @@
 import { Component, signal } from '@angular/core';
-import { WindowComponent } from './assistant/window.component';
+import { AssistantComponent } from './assistant/assistant.component';
 
 @Component({
   selector: 'app-root',
-  imports: [WindowComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  imports: [AssistantComponent],
+  templateUrl: './app.html'
 })
 export class App {
   protected readonly title = signal('DOCm');

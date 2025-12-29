@@ -2,11 +2,11 @@ import { Component, OnInit, resource, ResourceStreamItem, signal, ViewEncapsulat
 import { marked } from 'marked';
 import { StorageService } from './services/storage.service';
 import { ApiService } from './services/api.service';
-import { ChatResultStream } from './models';
+import { ChatResultStream } from './shared/models';
 import { ControlsComponent } from './controls/controls.component';
 import { MessageListComponent } from './conversation/message-list.component';
 import { MessageInputComponent } from './conversation/message-input.component';
-import { ChatMessage, MessageAuthor } from './models';
+import { ChatMessage, MessageAuthor } from './shared/models';
 
 /**
  * The Assistant window component containing the chat interface.
@@ -15,14 +15,14 @@ import { ChatMessage, MessageAuthor } from './models';
  * subcomponents and logic for managing chat state and interactions.
  */
 @Component({
-  selector: 'app-chatbot',
+  selector: 'assistant',
   standalone: true,
   imports: [ControlsComponent, MessageListComponent, MessageInputComponent],
-  templateUrl: './window.component.html',
-  styleUrl: './window.component.css',
+  templateUrl: './assistant.component.html',
+  styleUrl: './assistant.component.css',
   encapsulation: ViewEncapsulation.None
 })
-export class WindowComponent implements OnInit {
+export class AssistantComponent implements OnInit {
   /**
    * Whether the assistant window is active (visible). When the window is
    * inactive, only the toggle button is shown.

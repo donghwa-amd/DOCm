@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ChatMessage } from '../models';
+import { ChatMessage } from '../shared/models';
 
 @Injectable({
   providedIn: 'root'

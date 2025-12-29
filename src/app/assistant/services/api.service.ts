@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ChatResultStream, ChatError } from '../models';
+import { ChatResultStream, ChatError } from '../shared/models';
 
 @Injectable({
   providedIn: 'root'

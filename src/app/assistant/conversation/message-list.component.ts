@@ -1,6 +1,6 @@
 import { Component, Input, Resource, ResourceRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChatMessage } from '../models';
+import { ChatMessage } from '../shared/models';
 
 @Component({
   selector: 'message-list',
