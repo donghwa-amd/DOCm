@@ -2,7 +2,10 @@
     [class.active]="isActive"
     [class.fullscreen]="isFullscreen"
 >
-    <button id="toggle" (click)="toggleWindow()">
+    <button id="toggle"
+        (click)="toggleWindow()"
+        aria-label="Enable the Chatbot"
+    >
         <span class="material-symbols-outlined">chat_bubble</span>
     </button>
     <div id="window">
