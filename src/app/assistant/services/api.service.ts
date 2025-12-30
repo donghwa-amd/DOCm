@@ -35,9 +35,10 @@ export class ApiService {
       clearTimeout(timeoutId);
       
       if (response.status === 429) {
+        const retryAfter = response.headers.get('RateLimit-Reset');
         throw new ChatError(
-          "Sorry, you've sent too many requests. Please wait a moment before "
-          + "trying again.",
+          "Sorry, you've sent too many requests too quickly. Please wait "
+          + (retryAfter ? `${retryAfter}s` : "a moment") + " to try again.",
           {
             status: response.status
           }
