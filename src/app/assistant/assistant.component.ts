@@ -35,6 +35,15 @@ export class AssistantComponent implements OnInit {
   isFullscreen = false;
 
   /**
+   * Whether the assistant is currently streaming a response.
+   *
+   * This is used to control message inputs for the full duration of a
+   * streamed response (including temporary network stalls), and is cleared only
+   * when the stream finishes or an actual error is surfaced.
+   */
+  isAwaiting = signal(false);
+
+  /**
    * The list of chat messages in the current session.
    * 
    * Messages are stored in chronological order.
@@ -50,22 +59,21 @@ export class AssistantComponent implements OnInit {
   /**
    * The assistant's response stream resource.
    * 
-   * Tracks the streaming response from the assistant for the current user query
-   * and enables the interface to display the response as it is generated live.
+   * Once the user submits a query to the assistant with `onSend`, this signal
+   * tracks the streaming response from the assistant with the total content
+   * received so far, concatenated together, in HTML format.
    * 
-   * An empty string is used as the default value when there is no active query,
-   * which represents that the assistant is available to send a response.
-   * 
-   * `params` defines the trigger for new requests, which will be invoked upon
-   * any mutations to the `userRequest` signal.
-   * 
-   * `stream` sends the request to the API and consumes the streamed response,
-   * updating the output signal with new content as it arrives.
+   * Default value is an empty string.
    */
   assistantResponseStream = resource({
     defaultValue: "",
+    // changes (or instantiation) to `userRequest` invokes `stream`
     params: () => this.userRequest(),
+    // sends the request to the API and consumes the streamed response, updating
+    // the output signal with new content as it arrives
     stream: async ({params}) => {
+      // the output signal to update with the streamed response, this is the
+      // read value of the resource
       const output = signal<ResourceStreamItem<string>>({value: ''});
 
       // prevent doing anything on initial page load
@@ -80,43 +88,93 @@ export class AssistantComponent implements OnInit {
   })
 
   private readonly welcomeMessage = 
-    "<p>Welcome to the ROCm Documentation!</p>" +
-    "<p>How can I assist you today?</p>";
+    "Welcome to the ROCm Documentation!\n\nHow can I assist you today?";
 
   constructor(
-    private chatStorage: StorageService,
+    /**
+     * The storage service for persisting client-side chat data.
+     */
+    private storage: StorageService,
+    /**
+     * The API service for communicating with the assistant backend.
+     */
     private chat: ApiService
   ) {
     marked.use({ breaks: true });
+  }
+
+  /**
+   *  Adds a new message to the chat history.
+   * 
+   * The message content is parsed to HTML format, then it is appended to
+   * `messages`. If `save` is true, the message is also saved to client-side
+   * storage.
+   * 
+   * @param content The message content in Markdown format.
+   * @param type The author of the message.
+   * @param save Whether to save the message to client-side storage.
+   */
+  private async addMessage(
+    content: string,
+    type: MessageAuthor,
+    save: boolean = true
+  ): Promise<void> {
+    const parsed_content: string = await marked.parse(content);
+    const message: ChatMessage = { turn: type, content: parsed_content };
+    this.messages.push(message);
+    if (save) {
+      await this.storage.saveChatMessage(message);
+    }
+  }
+
+  /**
+   * Retrieves and loads the chat history from client-side storage.
+   */
+  private async loadChat(): Promise<void> {
+    this.messages = [];
+    await this.addMessage(this.welcomeMessage, MessageAuthor.Assistant, false);
+    
+    const messages = await this.storage.getChatMessages();
+    if (messages && messages.length > 0) {
+      this.messages.push(...messages);
+    }
   }
 
   async ngOnInit() {
     await this.loadChat();
   }
 
-  private async addMessage(
-    content: string,
-    type: MessageAuthor,
-    save: boolean = true
-  ) {
-    const parsed_content: string = await marked.parse(content);
-    const message: ChatMessage = { turn: type, content: parsed_content };
-    this.messages.push(message);
-    if (save) {
-      await this.chatStorage.saveChatMessage(message);
-    }
-  }
-
-  async onSend(userInput: string) {
+  /**
+   * Handles sending a user input message to the assistant.
+   * 
+   * Once the user input is received, it is added to the client-side chat
+   * history and a new request is initiated to generate a response from the
+   * assistant. The `isAwaiting` signal is true until the response stream has
+   * either fully completed, or an error has occurred.
+   * 
+   * If the user input is empty or whitespace, no action is taken.
+   * 
+   * @param userInput The user's input message.
+   * @returns A promise that resolves once the message is sent.
+   */
+  async onSend(userInput: string): Promise<void> {
     if (!userInput.trim()) {
       return;
     }
 
     await this.addMessage(userInput, MessageAuthor.User);
 
+    // lock input immediately; only unlock when the stream completes or errors.
+    this.isAwaiting.set(true);
+
     this.userRequest.set(userInput);
   }
 
+  /**
+   * Toggles the assistant window between active and inactive states.
+   * 
+   * If the window is currently fullscreen, it is also restored to normal size.
+   */
   toggleWindow() {
     this.isActive = !this.isActive;
     if (this.isFullscreen) {
@@ -124,25 +182,37 @@ export class AssistantComponent implements OnInit {
     }
   }
 
+  /**
+   * Maximizes the assistant window to fullscreen mode.
+   */
   maximizeWindow() {
     this.isFullscreen = true;
   }
 
+  /**
+   * Restores the assistant window from fullscreen to normal size.
+   */
   minimizeWindow() {
     this.isFullscreen = false;
   }
 
-  async clearChat() {
+  /**
+   * Clears the current chat history.
+   * 
+   * The client-side chat history is reset, and makes a request to clear the
+   * server-side chat history.
+   */
+  async clearChat(): Promise<void> {
     this.messages = [];
     await this.addMessage(this.welcomeMessage, MessageAuthor.Assistant, false);
     
-    const sessionId = await this.chatStorage.getChatId();
+    const sessionId = await this.storage.getChatId();
     await this.chat.clearHistory(sessionId);
-    await this.chatStorage.clearDatabase();
+    await this.storage.clearDatabase();
   }
 
   /**
-   * Appends incoming text deltas to the output and formats the text.
+   * Pipes the incoming stream into the output signal.
    * 
    * Upon every chunk of text received from the stream, the text is appended to
    * the existing output. If the delta contains a newline character, the entire
@@ -155,14 +225,15 @@ export class AssistantComponent implements OnInit {
    * generated so far.
    * @returns The complete, fully formatted assistant response.
    */
-  private async consumeChatStream(
+  private async pipeStream(
     response: ChatResultStream,
     output: WritableSignal<ResourceStreamItem<string>>
   ): Promise<string> {
     let text: string = "";
     for await (const delta of response.stream) {
       text += delta;
-      // only re-parse entire markdown on newlines
+      // only re-parse entire markdown on newlines, since Markdown formatting
+      // really only changes on line breaks
       if (delta.includes("\n")) {
         const parsed_text = await marked.parse(text);
 
@@ -172,12 +243,51 @@ export class AssistantComponent implements OnInit {
       // else append raw delta to previous output
       output.update((previous_text) => {
         if ('value' in previous_text) {
-          return { value: previous_text.value + delta };
+          return { value: `${previous_text.value}${delta}` };
         }
         return previous_text;
       });
     }
     return await marked.parse(text);
+  }
+
+  /**
+   * Consumes the entire response stream from the assistant.
+   * 
+   * The stream is piped into the output signal upon every new delta received.
+   * Once the stream is complete, the final assistant message is added to the
+   * chat history. If an error occurs during streaming, the error message is
+   * added instead.
+   * 
+   * Once the stream is complete (or errors), the `isAwaiting` signal is set to
+   * false.
+   * 
+   * @param response The streamed response being generated, a stream of Markdown
+   * text deltas.
+   * @param output The output signal to update, contains the entire response
+   * generated so far.
+   * @returns A promise that resolves once the stream is fully consumed.
+   */
+  private async consumeStream(
+    response: ChatResultStream,
+    output: WritableSignal<ResourceStreamItem<string>>
+  ): Promise<void> {
+    try {
+      const assistantOutput = await this.pipeStream(response, output);
+
+      await this.addMessage(assistantOutput, MessageAuthor.Assistant);
+    }
+    catch (e: any) {
+      const errorOutput: string = e?.message
+        ?? 'Sorry, something went wrong. Please try again later.';
+
+      await this.addMessage(errorOutput, MessageAuthor.Assistant);
+    }
+    finally {
+      // stream is completed, move text from streaming/error state to empty
+      output.set({ value: "" });
+      this.isAwaiting.set(false);
+    }
   }
 
   /**
@@ -191,7 +301,9 @@ export class AssistantComponent implements OnInit {
    * Once the request is sent, if the session identifier returned from the
    * assistant differs from the current session identifier, it is saved.
    * 
-   * The consumption of the streamed response is processed in parallel.
+   * The consumption of the streamed response is processed in parallel. The
+   * `isAwaiting` signal will remain true until either the stream fully
+   * completes, or an error occurs.
    * 
    * @param query The user query to send to the assistant.
    * @param output The output signal to update live with the streamed response.
@@ -203,15 +315,22 @@ export class AssistantComponent implements OnInit {
     output: WritableSignal<ResourceStreamItem<string>>
   ): Promise<void> {
     const url: string = window.location.href;
-    const sessionId: string = await this.chatStorage.getChatId();
+    const sessionId: string = await this.storage.getChatId();
 
     try {
-      // var to avoid block scope in try-catch
-      var response: ChatResultStream = await this.chat.generateResponse(
+      const response: ChatResultStream = await this.chat.generateResponse(
         query,
         sessionId,
         url
       );
+ 
+      // immediately consume the stream in background, return immediately and
+      // allow the stream to unblock inputs
+      this.consumeStream(response, output);
+      
+      if (response.sessionId && sessionId !== response.sessionId) {
+        await this.storage.saveChatId(response.sessionId);
+      }
     }
     catch (e: any) {
       // error occurred, so clear any existing output and append the error
@@ -220,30 +339,8 @@ export class AssistantComponent implements OnInit {
       const errorOutput: string = e?.message
         ?? 'Sorry, the request failed. Please try again later.';
       await this.addMessage(errorOutput, MessageAuthor.Assistant);
-      return;
-    }
-    
-    // immediately invoke lambda in background
-    (async () => {
-      const assistantOutput = await this.consumeChatStream(response, output);
 
-      // stream is completed, move text from streaming state to final message
-      output.set({ value: "" });
-      await this.addMessage(assistantOutput, MessageAuthor.Assistant);
-    })();
-    
-    if (response.sessionId && sessionId !== response.sessionId) {
-      await this.chatStorage.saveChatId(response.sessionId);
-    }
-  }
-
-  private async loadChat() {
-    this.messages = [];
-    await this.addMessage(this.welcomeMessage, MessageAuthor.Assistant, false);
-    
-    const messages = await this.chatStorage.getChatMessages();
-    if (messages && messages.length > 0) {
-      this.messages.push(...messages);
+      this.isAwaiting.set(false);
     }
   }
 }

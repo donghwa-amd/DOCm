@@ -29,7 +29,7 @@
 
         <footer id="footer">
             <message-input 
-                [isAwaiting]="assistantResponseStream.isLoading()"
+                [isAwaiting]="isAwaiting()"
                 (send)="onSend($event)">
             </message-input>
         </footer>
