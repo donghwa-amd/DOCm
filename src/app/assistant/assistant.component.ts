@@ -171,10 +171,10 @@ export class AssistantComponent implements OnInit {
       }
       // else append raw delta to previous output
       output.update((previous_text) => {
-        if ('value' in previous_text)
+        if ('value' in previous_text) {
           return { value: previous_text.value + delta };
-        else
-          return { error: delta as unknown as Error };
+        }
+        return previous_text;
       });
     }
     return await marked.parse(text);
@@ -214,7 +214,12 @@ export class AssistantComponent implements OnInit {
       );
     }
     catch (e: any) {
-      output.set(e?.message || 'The request failed. Please try again.');
+      // error occurred, so clear any existing output and append the error
+      output.set({ value: "" });
+      
+      const errorOutput: string = e?.message
+        ?? 'Sorry, the request failed. Please try again later.';
+      await this.addMessage(errorOutput, MessageAuthor.Assistant);
       return;
     }
     
