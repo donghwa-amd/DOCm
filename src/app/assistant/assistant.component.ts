@@ -1,4 +1,11 @@
-import { Component, OnInit, resource, ResourceStreamItem, signal, ViewEncapsulation, WritableSignal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  resource,
+  ResourceStreamItem,
+  signal,
+  WritableSignal,
+} from '@angular/core';
 import { marked } from 'marked';
 import { StorageService } from './services/storage.service';
 import { ApiService } from './services/api.service';
@@ -20,7 +27,6 @@ import { ChatMessage, MessageAuthor } from './shared/models';
   imports: [ControlsComponent, MessageListComponent, MessageInputComponent],
   templateUrl: './assistant.component.html',
   styleUrl: './assistant.component.css',
-  encapsulation: ViewEncapsulation.None
 })
 export class AssistantComponent implements OnInit {
   /**
