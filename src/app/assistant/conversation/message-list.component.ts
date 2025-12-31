@@ -1,4 +1,4 @@
-import { Component, Input, ResourceRef } from '@angular/core';
+import { Component, Input, ResourceRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChatMessage } from '../shared/models';
 
@@ -7,7 +7,9 @@ import { ChatMessage } from '../shared/models';
   templateUrl: './message-list.component.html',
   styleUrl: './message-list.component.css',
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  // required for styling to work with innerHTML modifications
+  encapsulation: ViewEncapsulation.None
 })
 export class MessageListComponent {
   @Input() messages: ChatMessage[] = [];
