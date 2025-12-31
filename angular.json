@@ -18,17 +18,17 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "index": false,
+            "assets": [],
+            "styles": []
           },
           "configurations": {
+            "element": {
+              "outputHashing": "none",
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": false
+            },
             "production": {
               "budgets": [
                 {
@@ -41,8 +41,7 @@
                   "maximumWarning": "4kB",
                   "maximumError": "8kB"
                 }
-              ],
-              "outputHashing": "all"
+              ]
             },
             "development": {
               "optimization": false,
