@@ -18,7 +18,7 @@ export class ApiService {
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
-      const response = await fetch(this.API_URL + "/chat/stream", {
+      const response = await fetch(this.API_URL + "/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export class ApiService {
         body: JSON.stringify({
           content: query,
           current_url: url,
-          session_id: sessionId // backwards compatibility
+          stream: true
         }),
         signal: timeout ? controller.signal : null,
       });
@@ -89,9 +89,6 @@ export class ApiService {
           "Content-Type": "application/json",
           "Session-ID": sessionId
         },
-        body: JSON.stringify({
-          session_id: sessionId // backwards compatibility
-        }),
         signal: timeout ? controller.signal : null,
       });
       return true;
