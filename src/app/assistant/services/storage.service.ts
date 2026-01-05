@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ChatMessage } from '../shared/models';
 
+/**
+ * Names of the object stores used in the browser's persisted storage.
+ */
 enum Datastore {
   History = "chat_history",
   Session = "chat_session"
@@ -9,11 +12,32 @@ enum Datastore {
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * Persists and retrieves chat session state in browser storage.
+ *
+ * Reads and writes persisted state on the client.
+ */
 export class StorageService {
+  /**
+   * The IndexedDB database name used to persist chat state.
+   */
   private readonly CHAT_HISTORY_DB = "chat_database";
+
+  /**
+   * Key used to store the current session ID in the session object store.
+   */
   private readonly SESSION_ID_KEY = "session_id";
+
+  /**
+   * Cached database handle promise to ensure a single open attempt.
+   */
   private database?: Promise<IDBDatabase>;
 
+  /**
+   * Opens (or returns) the IndexedDB database used by this service.
+   *
+   * @returns A promise resolving to an open database connection.
+   */
   private openDatabase(): Promise<IDBDatabase> {
     if (this.database) {
       return this.database;
@@ -42,6 +66,12 @@ export class StorageService {
     return this.database;
   }
 
+  /**
+   * Wraps an IndexedDB request in a promise.
+   *
+   * @param request The request to await.
+   * @returns A promise resolving to the request result.
+   */
   private asPromise<T>(request: IDBRequest<T>): Promise<T> {
     return new Promise((resolve, reject) => {
       request.onsuccess = () => resolve(request.result);
@@ -49,6 +79,11 @@ export class StorageService {
     });
   }
 
+  /**
+   * Resolves when a transaction finishes, or rejects on error/abort.
+   *
+   * @param transaction The transaction to wait for.
+   */
   private completeTransaction(transaction: IDBTransaction): Promise<void> {
     return new Promise((resolve, reject) => {
       transaction.oncomplete = () => resolve();
@@ -57,6 +92,11 @@ export class StorageService {
     });
   }
 
+  /**
+   * Persists the current chat session ID to the browser's IndexedDB.
+   *
+   * @param id The session identifier to store.
+   */
   async saveChatId(id: string) {
     const database = await this.openDatabase();
     const transaction = database.transaction(Datastore.Session, "readwrite");
@@ -66,6 +106,11 @@ export class StorageService {
     await this.completeTransaction(transaction);
   }
 
+  /**
+   * Loads the persisted chat session ID.
+   *
+   * @returns The stored session ID, or an empty string if unavailable.
+   */
   async getChatId(): Promise<string> {
     try {
       const database = await this.openDatabase();
@@ -82,6 +127,11 @@ export class StorageService {
     }
   }
 
+  /**
+   * Appends a single chat message to persisted history.
+   *
+   * @param message The message to store.
+   */
   async saveChatMessage(message: ChatMessage) {
     const database = await this.openDatabase();
     const transaction = database.transaction(Datastore.History, "readwrite");
@@ -91,6 +141,11 @@ export class StorageService {
     await this.completeTransaction(transaction);
   }
 
+  /**
+   * Loads all persisted chat messages.
+   *
+   * @returns Messages in storage order, or an empty list on failure.
+   */
   async getChatMessages(): Promise<ChatMessage[]> {
     try {
       const database = await this.openDatabase();
@@ -107,6 +162,9 @@ export class StorageService {
     }
   }
 
+  /**
+   * Clears all persisted chat history and session state.
+   */
   async clearDatabase() {
     const database = await this.openDatabase();
     const transaction = database.transaction(

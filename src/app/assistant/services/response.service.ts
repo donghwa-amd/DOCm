@@ -4,10 +4,34 @@ import { ChatResultStream, ChatError } from '../shared/models';
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * Sends chat requests to the backend and returns streamed responses.
+ * 
+ * The API endpoint for the backend is configurable via the global scope
+ * `window.API_ENDPOINT` variable, which should be the base URL of the backend
+ * API. This endpoint is read at class instantiation, and used for all requests.
+ */
 export class ResponseService {
+  /**
+   * Base URL for the backend API endpoint.
+   */
   private readonly API_URL = (window as any).API_ENDPOINT;
+
+  /**
+   * Default request timeout in milliseconds.
+   */
   private readonly TIMEOUT = 60000;
 
+  /**
+   * Sends a prompt to the backend and returns a streaming response.
+   *
+   * @param query User prompt to generate a response for.
+   * @param sessionId Current session identifier.
+   * @param url Current page URL/context.
+   * @param timeout Request timeout in milliseconds, defaults to 60 seconds.
+   * @returns The generated response stream and validated session ID.
+   * @throws ChatError When the request fails, times out, or is rate-limited.
+   */
   async generateResponse(
     query: string,
     sessionId: string,
@@ -75,6 +99,13 @@ export class ResponseService {
     }
   }
 
+  /**
+   * Clears the server-side history/session state.
+   *
+   * @param sessionId Current session identifier.
+   * @param timeout Request timeout in milliseconds, defaults to 60 seconds.
+   * @returns True if the request was sent; false on failure.
+   */
   async clearHistory(
     sessionId: string,
     timeout: number = this.TIMEOUT

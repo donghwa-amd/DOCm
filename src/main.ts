@@ -3,6 +3,10 @@ import { createApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AssistantComponent } from './app/assistant/assistant.component';
 
+/*
+ * Default API endpoint for the backend service. Mounted to the global scope
+ * when imported, enabling the service to read it at runtime.
+ */
 (window as any).API_ENDPOINT ??= 'https://rainier-emersyn-sparely.ngrok-free.app';
 
 const ASSISTANT_TAG_NAME = 'docm-assistant';
