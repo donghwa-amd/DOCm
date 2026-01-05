@@ -44,6 +44,7 @@
               ]
             },
             "development": {
+              "index": "src/index.html",
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
