@@ -4,7 +4,7 @@ import { ChatResultStream, ChatError } from '../shared/models';
 @Injectable({
   providedIn: 'root'
 })
-export class ApiService {
+export class ResponseService {
   private readonly API_URL = (window as any).API_ENDPOINT;
   private readonly TIMEOUT = 60000;
 

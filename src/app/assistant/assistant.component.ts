@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { marked } from 'marked';
 import { StorageService } from './services/storage.service';
-import { ApiService } from './services/api.service';
+import { ResponseService } from './services/response.service';
 import { ChatResultStream } from './shared/models';
 import { ControlsComponent } from './controls/controls.component';
 import { MessageListComponent } from './conversation/message-list.component';
@@ -104,7 +104,7 @@ export class AssistantComponent implements OnInit {
     /**
      * The API service for communicating with the assistant backend.
      */
-    private chat: ApiService
+    private chat: ResponseService
   ) {
     marked.use({ breaks: true });
   }
