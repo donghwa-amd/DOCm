@@ -9,6 +9,12 @@ import { AssistantComponent } from './app/assistant/assistant.component';
  */
 (window as any).API_ENDPOINT ??= 'https://rainier-emersyn-sparely.ngrok-free.app';
 
+/**
+ * The custom element tag name for the assistant component.
+ * 
+ * An HTML element with name `<docm-assistant>` will be defined to host the
+ * assistant UI.
+ */
 const ASSISTANT_TAG_NAME = 'docm-assistant';
 
 /**
