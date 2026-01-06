@@ -24,6 +24,22 @@ export class ResponseService {
 
   /**
    * Sends a prompt to the backend and returns a streaming response.
+   * 
+   * Obtains the assistant response for the given user query, as well as the
+   * session ID that the response is associated with.
+   * 
+   * Incremental response deltas are streamed as they are produced, enabling
+   * real-time consumption of assistant output. Each chunk is a raw Markdown
+   * text delta, consisting of only the newly generated text since the last
+   * chunk.
+   * 
+   * Additionally, the response is associated with a session ID that identifies
+   * the current user session. This ID should be persisted client-side and
+   * provided with subsequent requests to maintain context.
+   * 
+   * If the session ID is `None` or if there is no existing session associated
+   * with the ID, a new session will be automatically created and its ID will be
+   * returned in the response.
    *
    * @param query User prompt to generate a response for.
    * @param sessionId Current session identifier.
