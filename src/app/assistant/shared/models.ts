@@ -14,13 +14,51 @@ export interface ChatMessage {
   content: string;
 }
 
+export type EventType = 'reasoning' | 'function_call' | 'output';
+export type EventStatus = 'in_progress' | 'completed';
+
+/**
+ * A reasoning progress event from the assistant.
+ */
+export type ReasoningStreamEvent = {
+  type: 'reasoning';
+  status: EventStatus;
+};
+
+/**
+ * A tool call progress event from the assistant.
+ */
+export type FunctionCallStreamEvent = {
+  type: 'function_call';
+  status: EventStatus;
+  name: string;
+  arguments?: Record<string, unknown>;
+};
+
+/**
+ * An output text delta event from the assistant.
+ */
+export type OutputStreamEvent = {
+  type: 'output';
+  status: EventStatus;
+  delta: string;
+};
+
+/**
+ * A streaming event emitted by the assistant backend.
+ */
+export type StreamEvent =
+  | ReasoningStreamEvent
+  | FunctionCallStreamEvent
+  | OutputStreamEvent;
+
 /**
  * The result of a chat generation request, including the session ID that the
  * request is associated with and the text stream of the generated response.
  */
 export type ChatResultStream = {
   sessionId: string;
-  stream: ReadableStream<string>;
+  stream: ReadableStream<StreamEvent>;
 };
 
 /**
