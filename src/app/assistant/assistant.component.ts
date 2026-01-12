@@ -9,7 +9,11 @@ import {
 import { marked } from 'marked';
 import { StorageService } from './services/storage.service';
 import { ResponseService } from './services/response.service';
-import { ChatResultStream, StreamEvent } from './shared/models';
+import {
+  ChatResultStream,
+  ReasoningStreamEvent,
+  FunctionCallStreamEvent,
+} from './shared/models';
 import { ControlsComponent } from './controls/controls.component';
 import { MessageListComponent } from './conversation/message-list.component';
 import { MessageInputComponent } from './conversation/message-input.component';
@@ -99,12 +103,12 @@ export class AssistantComponent implements OnInit {
     }
   })
 
-  private static readonly WELCOME_MESSAGE = 
+  static readonly WELCOME_MESSAGE = 
     "Welcome to the ROCm Documentation!\n\nHow can I assist you today?";
 
-  private static readonly PROGRESS_LABELS: Record<string, string> = {
+  static readonly PROGRESS_LABELS: Record<string, string> = {
     retrieve_web_links: 'Searching for relevant pages...',
-    fetch_page_content: 'Reading page content...',
+    fetch_page_content: 'Retrieving page content...',
   };
 
   constructor(
@@ -236,17 +240,10 @@ export class AssistantComponent implements OnInit {
     await this.storage.clearDatabase();
   }
 
-  private getOutputDelta(event: StreamEvent): string | null {
-    if (event.type !== 'output') {
-      return null;
-    }
-    return event.delta;
-  }
-
   private formatURLsList(
     args: Record<string, unknown> | undefined
   ): string {
-    const urls = args?.['urls'];
+    const urls: string[] | unknown = args?.['urls'];
     if (!Array.isArray(urls)) {
       return '';
     }
@@ -256,27 +253,27 @@ export class AssistantComponent implements OnInit {
       .join('\n');
   }
 
-  private getProgressLabel(event: StreamEvent): string {
+  private getProgressLabel(
+    event: ReasoningStreamEvent | FunctionCallStreamEvent
+  ): string {
     if (event.type === 'reasoning') {
-      return event.status === 'in_progress'
-        ? 'Thinking...'
-        : 'Thinking completed.';
+      // multiple reasoning steps may occur sequentially, so reasoning only
+      // "ends" when another event type occurs
+      return 'Thinking...';
     }
 
-    if (event.type === 'function_call') {
-      if (event.status === 'completed') {
-        return 'Processing completed.';
+    switch (event.name) {
+      case 'retrieve_web_links': {
+        const label = AssistantComponent.PROGRESS_LABELS['retrieve_web_links'];
+        return label;
       }
-
-      if (event.name === 'fetch_page_content') {
+      case 'fetch_page_content': {
         const label = AssistantComponent.PROGRESS_LABELS['fetch_page_content'];
         return `${label}\n${this.formatURLsList(event.arguments)}`;
       }
-
-      return "Processing...";
+      default:
+        return "Processing...";
     }
-
-    return '';
   }
 
   /**
@@ -299,16 +296,22 @@ export class AssistantComponent implements OnInit {
   ): Promise<string> {
     let text: string = "";
     for await (const event of response.stream) {
-      const delta = this.getOutputDelta(event);
-      if (!delta) {
+      if (event.type !== 'output') {
         const progress = this.getProgressLabel(event);
         const parsed_progress = await marked.parse(progress);
         this.streamProgress.set(parsed_progress);
+
+        // persist completed tool calls
+        if (event.status === 'completed' && event.type === 'function_call') {
+          await this.addMessage(parsed_progress, MessageAuthor.Assistant);
+        }
+
         continue;
       }
 
       this.streamProgress.set('');
 
+      const delta: string = event.delta;
       text += delta;
       // only re-parse entire markdown on newlines, since Markdown formatting
       // really only changes on line breaks
@@ -400,7 +403,8 @@ export class AssistantComponent implements OnInit {
       const response: ChatResultStream = await this.chat.generateResponse(
         query,
         sessionId,
-        url
+        url,
+        null
       );
  
       // immediately consume the stream in background, return immediately and

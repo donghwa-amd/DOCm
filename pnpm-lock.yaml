@@ -26,9 +26,6 @@ importers:
       '@angular/platform-browser':
         specifier: ^21.0.0
         version: 21.0.6(@angular/common@21.0.6(@angular/core@21.0.6(@angular/compiler@21.0.6)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@21.0.6(@angular/compiler@21.0.6)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@streamparser/json':
-        specifier: ^0.0.22
-        version: 0.0.22
       '@streamparser/json-whatwg':
         specifier: ^0.0.22
         version: 0.0.22

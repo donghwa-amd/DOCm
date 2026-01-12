@@ -22,7 +22,7 @@ export class ResponseService {
   /**
    * Default request timeout in milliseconds.
    */
-  private readonly TIMEOUT = 60000;
+  private readonly TIMEOUT = 120000;
 
   /**
    * Sends a prompt to the backend and returns a streaming response.
@@ -46,7 +46,7 @@ export class ResponseService {
    * @param query User prompt to generate a response for.
    * @param sessionId Current session identifier.
    * @param url Current page URL/context.
-   * @param timeout Request timeout in milliseconds, defaults to 60 seconds.
+   * @param timeout Request timeout in milliseconds, defaults to 120 seconds.
    * @returns The generated response stream and validated session ID.
    * @throws ChatError When the request fails, times out, or is rate-limited.
    */
@@ -54,10 +54,12 @@ export class ResponseService {
     query: string,
     sessionId: string,
     url: string,
-    timeout: number = this.TIMEOUT
+    timeout: number | null = this.TIMEOUT
   ): Promise<ChatResultStream> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const timeoutId = setTimeout(
+      () => controller.abort(), timeout ?? this.TIMEOUT
+    );
 
     try {
       const response = await fetch(this.API_URL + "/chat", {
@@ -123,7 +125,7 @@ export class ResponseService {
    * Clears the server-side history/session state.
    *
    * @param sessionId Current session identifier.
-   * @param timeout Request timeout in milliseconds, defaults to 60 seconds.
+   * @param timeout Request timeout in milliseconds, defaults to 120 seconds.
    * @returns True if the request was sent; false on failure.
    */
   async clearHistory(
