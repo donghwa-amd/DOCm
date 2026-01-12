@@ -23,7 +23,9 @@
         <div id="body">
             <message-list 
                 [messages]="messages" 
-                [messageStream]="assistantResponseStream">
+                [messageStream]="assistantResponseStream"
+                [isAwaiting]="isAwaiting()"
+                [progressText]="streamProgress()">
             </message-list>
         </div>
 

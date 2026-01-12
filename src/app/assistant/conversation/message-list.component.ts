@@ -14,4 +14,6 @@ import { ChatMessage } from '../shared/models';
 export class MessageListComponent {
   @Input() messages: ChatMessage[] = [];
   @Input() messageStream: ResourceRef<string> = {} as ResourceRef<string>;
+  @Input() isAwaiting: boolean = false;
+  @Input() progressText: string = '';
 }

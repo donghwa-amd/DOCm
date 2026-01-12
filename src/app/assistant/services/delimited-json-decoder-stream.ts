@@ -1,6 +1,4 @@
-import { JSONParser } from '@streamparser/json-whatwg';
-import type { ParsedElementInfo } from '@streamparser/json/utils/types/parsedElementInfo.js';
-
+import { JSONParser, ParsedElementInfo } from '@streamparser/json-whatwg';
 /**
  * Decodes an NDJSON (newline-delimited JSON) stream from bytes to JSON objects.
  */
@@ -18,7 +16,7 @@ export class DelimitedJSONDecoderStream
 
     
     const completedJSONFilter = new TransformStream<
-      ParsedElementInfo,
+      ParsedElementInfo.ParsedElementInfo,
       Record<string, unknown>
     > ({
       transform: (info, controller) => {

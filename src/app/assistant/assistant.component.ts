@@ -9,7 +9,7 @@ import {
 import { marked } from 'marked';
 import { StorageService } from './services/storage.service';
 import { ResponseService } from './services/response.service';
-import { ChatResultStream } from './shared/models';
+import { ChatResultStream, StreamEvent } from './shared/models';
 import { ControlsComponent } from './controls/controls.component';
 import { MessageListComponent } from './conversation/message-list.component';
 import { MessageInputComponent } from './conversation/message-input.component';
@@ -48,6 +48,12 @@ export class AssistantComponent implements OnInit {
    * when the stream finishes or an actual error is surfaced.
    */
   isAwaiting = signal(false);
+
+  /**
+   * A transient progress message shown while the assistant is reasoning or
+   * executing tools.
+   */
+  streamProgress = signal('');
 
   /**
    * The list of chat messages in the current session.
@@ -93,8 +99,13 @@ export class AssistantComponent implements OnInit {
     }
   })
 
-  private readonly welcomeMessage = 
+  private static readonly WELCOME_MESSAGE = 
     "Welcome to the ROCm Documentation!\n\nHow can I assist you today?";
+
+  private static readonly PROGRESS_LABELS: Record<string, string> = {
+    retrieve_web_links: 'Searching for relevant pages...',
+    fetch_page_content: 'Reading page content...',
+  };
 
   constructor(
     /**
@@ -138,7 +149,11 @@ export class AssistantComponent implements OnInit {
    */
   private async loadChat(): Promise<void> {
     this.messages = [];
-    await this.addMessage(this.welcomeMessage, MessageAuthor.Assistant, false);
+    await this.addMessage(
+      AssistantComponent.WELCOME_MESSAGE,
+      MessageAuthor.Assistant,
+      false
+    );
     
     const messages = await this.storage.getChatMessages();
     if (messages && messages.length > 0) {
@@ -210,11 +225,58 @@ export class AssistantComponent implements OnInit {
    */
   async clearChat(): Promise<void> {
     this.messages = [];
-    await this.addMessage(this.welcomeMessage, MessageAuthor.Assistant, false);
+    await this.addMessage(
+      AssistantComponent.WELCOME_MESSAGE,
+      MessageAuthor.Assistant,
+      false
+    );
     
     const sessionId = await this.storage.getChatId();
     await this.chat.clearHistory(sessionId);
     await this.storage.clearDatabase();
+  }
+
+  private getOutputDelta(event: StreamEvent): string | null {
+    if (event.type !== 'output') {
+      return null;
+    }
+    return event.delta;
+  }
+
+  private formatURLsList(
+    args: Record<string, unknown> | undefined
+  ): string {
+    const urls = args?.['urls'];
+    if (!Array.isArray(urls)) {
+      return '';
+    }
+    return urls
+      .filter((url): url is string => typeof url === 'string')
+      .map((url) => `- ${url}`)
+      .join('\n');
+  }
+
+  private getProgressLabel(event: StreamEvent): string {
+    if (event.type === 'reasoning') {
+      return event.status === 'in_progress'
+        ? 'Thinking...'
+        : 'Thinking completed.';
+    }
+
+    if (event.type === 'function_call') {
+      if (event.status === 'completed') {
+        return 'Processing completed.';
+      }
+
+      if (event.name === 'fetch_page_content') {
+        const label = AssistantComponent.PROGRESS_LABELS['fetch_page_content'];
+        return `${label}\n${this.formatURLsList(event.arguments)}`;
+      }
+
+      return "Processing...";
+    }
+
+    return '';
   }
 
   /**
@@ -236,7 +298,17 @@ export class AssistantComponent implements OnInit {
     output: WritableSignal<ResourceStreamItem<string>>
   ): Promise<string> {
     let text: string = "";
-    for await (const delta of response.stream) {
+    for await (const event of response.stream) {
+      const delta = this.getOutputDelta(event);
+      if (!delta) {
+        const progress = this.getProgressLabel(event);
+        const parsed_progress = await marked.parse(progress);
+        this.streamProgress.set(parsed_progress);
+        continue;
+      }
+
+      this.streamProgress.set('');
+
       text += delta;
       // only re-parse entire markdown on newlines, since Markdown formatting
       // really only changes on line breaks
@@ -293,6 +365,7 @@ export class AssistantComponent implements OnInit {
       // stream is completed, move text from streaming/error state to empty
       output.set({ value: "" });
       this.isAwaiting.set(false);
+      this.streamProgress.set('');
     }
   }
 
@@ -339,14 +412,15 @@ export class AssistantComponent implements OnInit {
       }
     }
     catch (e: any) {
-      // error occurred, so clear any existing output and append the error
-      output.set({ value: "" });
-      
       const errorOutput: string = e?.message
         ?? 'Sorry, the request failed. Please try again later.';
+  
       await this.addMessage(errorOutput, MessageAuthor.Assistant);
-
+  
+      // error occurred, so clear any existing output and append the error
+      output.set({ value: "" });
       this.isAwaiting.set(false);
+      this.streamProgress.set('');
     }
   }
 }

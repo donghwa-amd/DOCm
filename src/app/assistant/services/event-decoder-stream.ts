@@ -7,7 +7,8 @@ import { StreamEvent, EventStatus, EventType } from '../shared/models';
  * well-formed `StreamEvent` instances. Invalid or unrecognized objects are
  * ignored.
  */
-export class EventDecoderStream extends TransformStream<Record<string, unknown>, StreamEvent> {
+export class EventDecoderStream
+  extends TransformStream<Record<string, unknown>, StreamEvent> {
   constructor() {
     super({
       transform: (chunk, controller) => {
@@ -24,14 +25,18 @@ export class EventDecoderStream extends TransformStream<Record<string, unknown>,
   }
 
   private static isEventType(value: unknown): value is EventType {
-    return value === 'reasoning' || value === 'function_call' || value === 'output';
+    return value === 'reasoning'
+      || value === 'function_call'
+      || value === 'output';
   }
 
   private static isEventStatus(value: unknown): value is EventStatus {
     return value === 'in_progress' || value === 'completed';
   }
 
-  private static toStreamEvent(value: Record<string, unknown>): StreamEvent | null {
+  private static toStreamEvent(
+    value: Record<string, unknown>
+  ): StreamEvent | null {
     const type = value['type'];
     const status = value['status'];
     if (!this.isEventType(type) || !this.isEventStatus(status)) {

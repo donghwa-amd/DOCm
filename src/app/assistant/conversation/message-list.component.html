@@ -7,7 +7,12 @@
         </li>
         }
 
-        @if (messageStream.isLoading()) {
+        @if (isAwaiting && progressText.trim()) {
+            <li class="message" data-turn="assistant">
+                <div [innerHTML]="progressText"></div>
+            </li>
+        }
+        @else if (messageStream.isLoading()) {
             <li class="message" data-turn="assistant">
                 <p>Awaiting...</p>
             </li>

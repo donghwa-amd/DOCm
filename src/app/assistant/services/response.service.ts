@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ChatResultStream, ChatError } from '../shared/models';
+import { DelimitedJSONDecoderStream } from './delimited-json-decoder-stream';
+import { EventDecoderStream } from './event-decoder-stream';
 
 @Injectable({
   providedIn: 'root'
@@ -91,11 +93,13 @@ export class ResponseService {
       }
 
       const validatedSessionId = response.headers.get('Session-ID') || "";
-      const textStream = response.body.pipeThrough(new TextDecoderStream());
+      const eventStream = response.body
+        .pipeThrough(new DelimitedJSONDecoderStream('\n'))
+        .pipeThrough(new EventDecoderStream());
 
       return {
         sessionId: validatedSessionId,
-        stream: textStream,
+        stream: eventStream,
       };
     } catch (e: any) {
       clearTimeout(timeoutId);
