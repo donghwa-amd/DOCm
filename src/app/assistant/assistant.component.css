@@ -67,7 +67,7 @@
 
 #assistant.fullscreen #window {
     height: 90vh;
-    width: 50vw;
+    width: 75vw;
     transform: scale(1);
     margin: auto;
 }

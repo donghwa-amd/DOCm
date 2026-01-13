@@ -409,8 +409,8 @@ export class AssistantComponent implements OnInit {
       await this.addMessage(assistantOutput, MessageAuthor.Assistant);
     }
     catch (e: any) {
-      const errorOutput: string = e?.message
-        ?? 'Sorry, something went wrong. Please try again later.';
+      const errorOutput = 'Sorry, something went wrong. Please refresh and try'
+        + ' again later.';
 
       await this.addMessage(errorOutput, MessageAuthor.Assistant);
     }

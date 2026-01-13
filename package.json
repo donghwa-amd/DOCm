@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:sphinx": "ng serve --configuration sphinx",
     "build": "ng build",
     "build:element": "ng build --configuration element",
     "watch": "ng build --watch --configuration development",
