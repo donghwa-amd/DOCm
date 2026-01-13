@@ -21,9 +21,13 @@ message-list {
 }
 
 #message-list .message {
+    display: flex;
+    flex-direction: row;
+}
+
+#message-list .message-body {
     width: fit-content;
     padding: 12px 16px;
-    border-radius: 10px;
     list-style-type: none;
     display: flex;
     flex-direction: column;
@@ -59,6 +63,7 @@ message-list {
     color: var(--pst-color-on-surface);
     background: var(--pst-color-surface);
     align-self: flex-end;
+    border-radius: 10px;
 }
 
 #message-list .message[data-turn="assistant"] {
@@ -69,4 +74,77 @@ message-list {
 #message-list .message[data-turn="assistant"] code {
     background: var(--pst-color-surface);
     border-radius: .25rem;
+}
+
+#message-list .message[data-turn="assistant"].progress-event {
+    color: var(--pst-color-text-muted);
+    font-size: 0.8em;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: 12px;
+    align-items: flex-start;
+}
+
+#message-list .message.progress-event .message-body {
+    padding: 0;
+}
+
+#message-list .message.progress-event .message-body p {
+    margin: 0;
+}
+
+#message-list .message.progress-event .message-body ul {
+    margin: 0;
+    padding-left: 0em;
+    list-style-type: none;
+}
+
+#message-list .message.progress-event .message-body li {
+    display: flex;
+    align-items: center;
+}
+
+#message-list .message.progress-event .message-body ul li::before {
+    content: "\e5cc";
+    font-family: "Material Symbols Outlined";
+    font-size: 1.1em;
+    line-height: 1;
+    left: 0;
+    top: 0.15em;
+}
+
+#message-list .message.progress-event .progress-icon {
+    width: 1.5em;
+    height: 1.5em;
+    color: var(--pst-color-text-muted);
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    margin: 0 0.5em;
+}
+
+#message-list .message.progress-event .progress-icon span {
+    font-size: 1.5em;
+    width: 0.8em;
+    height: 0.8em;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+#message-list .message.progress-event .progress-icon .progress-icon-spinner {
+    display: inline-block;
+    border: 2px solid var(--pst-color-text-muted);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    border-top-color: transparent;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

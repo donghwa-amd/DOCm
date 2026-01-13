@@ -127,9 +127,9 @@ export class AssistantComponent implements OnInit {
   /**
    *  Adds a new message to the chat history.
    * 
-   * The message content is parsed to HTML format, then it is appended to
-   * `messages`. If `save` is true, the message is also saved to client-side
-   * storage.
+   * The message content is converted from Markdown to HTML format, then it is
+   * appended to `messages`. If `save` is true, the message is also saved to
+   * client-side storage.
    * 
    * @param content The message content in Markdown format.
    * @param type The author of the message.
@@ -138,10 +138,11 @@ export class AssistantComponent implements OnInit {
   private async addMessage(
     content: string,
     type: MessageAuthor,
-    save: boolean = true
+    save: boolean = true,
+    final: boolean = true
   ): Promise<void> {
     const parsed_content: string = await marked.parse(content);
-    const message: ChatMessage = { turn: type, content: parsed_content };
+    const message: ChatMessage = { turn: type, content: parsed_content, final };
     this.messages.push(message);
     if (save) {
       await this.storage.saveChatMessage(message);
@@ -288,7 +289,7 @@ export class AssistantComponent implements OnInit {
    * text deltas.
    * @param output The output signal to update, contains the entire response
    * generated so far.
-   * @returns The complete, fully formatted assistant response.
+   * @returns The complete, unformatted output text containing all deltas.
    */
   private async pipeStream(
     response: ChatResultStream,
@@ -303,7 +304,7 @@ export class AssistantComponent implements OnInit {
 
         // persist completed tool calls
         if (event.status === 'completed' && event.type === 'function_call') {
-          await this.addMessage(parsed_progress, MessageAuthor.Assistant);
+          await this.addMessage(progress, MessageAuthor.Assistant, true, false);
         }
 
         continue;
@@ -329,7 +330,7 @@ export class AssistantComponent implements OnInit {
         return previous_text;
       });
     }
-    return await marked.parse(text);
+    return text;
   }
 
   /**

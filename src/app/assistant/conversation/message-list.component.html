@@ -2,24 +2,39 @@
     <ul id="message-list">
         @for (message of messages; track $index) {
             <li class="message"
-            [attr.data-turn]="message.turn"
-            [innerHTML]="message.content">
-        </li>
+                [attr.data-turn]="message.turn"
+                [class.progress-event]="message.final === false"
+            >
+                @if (message.final === false) {
+                    <div class="progress-icon">
+                        <span class="material-symbols-outlined" aria-hidden="true">
+                            check
+                        </span>
+                    </div>
+                }
+                <div class="message-body" [innerHTML]="message.content"></div>
+            </li>
         }
 
         @if (isAwaiting && progressText.trim()) {
-            <li class="message" data-turn="assistant">
-                <div [innerHTML]="progressText"></div>
+            <li class="message progress-event" data-turn="assistant">
+                <div class="progress-icon" aria-hidden="true">
+                    <span class="progress-icon-spinner"></span>
+                </div>
+                <div class="message-body" [innerHTML]="progressText"></div>
             </li>
         }
         @else if (messageStream.isLoading()) {
-            <li class="message" data-turn="assistant">
-                <p>Awaiting...</p>
+            <li class="message progress-event" data-turn="assistant">
+                <div class="progress-icon" aria-hidden="true">
+                    <span class="progress-icon-spinner"></span>
+                </div>
+                <div class="message-body"><p>Awaiting...</p></div>
             </li>
         }
         @else if (messageStream.hasValue() && messageStream.value().trim()) {
-            <li class="message" data-turn="assistant"
-                [innerHTML]="messageStream.value()">
+            <li class="message" data-turn="assistant">
+                <div class="message-body" [innerHTML]="messageStream.value()"></div>
             </li>
         }
     </ul>
