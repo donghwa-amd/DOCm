@@ -47,15 +47,16 @@ export class AssistantComponent implements OnInit {
   /**
    * Whether the assistant is currently streaming a response.
    *
-   * This is used to control message inputs for the full duration of a
-   * streamed response (including temporary network stalls), and is cleared only
-   * when the stream finishes or an actual error is surfaced.
+   * This is used to control message inputs for the full duration of a streamed
+   * response (including temporary network stalls), and is cleared only when the
+   * stream finishes or an actual error is surfaced.
    */
   isAwaiting = signal(false);
 
   /**
-   * A transient progress message shown while the assistant is reasoning or
-   * executing tools.
+   * A transient progress message shown during reasoning or executing tools.
+   * 
+   * Contains formatted HTML of the current progress status.
    */
   streamProgress = signal('');
 
@@ -134,6 +135,8 @@ export class AssistantComponent implements OnInit {
    * @param content The message content in Markdown format.
    * @param type The author of the message.
    * @param save Whether to save the message to client-side storage.
+    * @param final Whether this message is final output text. When `false`, this
+    * indicates that the message is a status update.
    */
   private async addMessage(
     content: string,
@@ -167,6 +170,7 @@ export class AssistantComponent implements OnInit {
   }
 
   async ngOnInit() {
+    // open the chat when the page is loaded
     await this.loadChat();
   }
 
@@ -280,10 +284,19 @@ export class AssistantComponent implements OnInit {
   /**
    * Pipes the incoming stream into the output signal.
    * 
-   * Upon every chunk of text received from the stream, the text is appended to
-   * the existing output. If the delta contains a newline character, the entire
-   * text is formatted to HTML to ensure proper formatting. Otherwise, the raw
-   * delta is appended to the existing formatted output.
+   * The stream can include both output text deltas and progress events.
+   *
+   * For non-output events (reasoning/tool execution), `streamProgress` is
+   * updated with a formatted progress event message.
+   *
+   * For completed tool calls, a permanent status message is added to the chat
+   * history `messages` with `final=false`.
+   *
+   * For output text deltas, the text is appended to the existing output. If the
+   * delta contains a newline character, the entire text is formatted to HTML to
+   * ensure proper formatting. Otherwise, the raw delta is appended to the
+   * existing formatted output. `streamProgress` is cleared when output deltas
+   * are received.
    * 
    * @param response The streamed response being generated, a stream of Markdown
    * text deltas.

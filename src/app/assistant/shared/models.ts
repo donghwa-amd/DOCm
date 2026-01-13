@@ -14,9 +14,9 @@ export interface ChatMessage {
   content: string;
   /**
    * Whether this message represents final output content.
-   *
-   * When set to `false`, the UI treats the message as a progress/status update
-   * (e.g. tool calls) and applies the `progress-event` styling.
+   * 
+   * If `false`, this message is a progress status update, not final output.
+   * Only relevant for assistant messages.
    */
   final?: boolean;
 }
