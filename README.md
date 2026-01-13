@@ -26,6 +26,22 @@ Once the server is running, open your browser and navigate to
 `http://localhost:4200/`. The application will automatically reload whenever you
 modify any of the source files.
 
+### Inheriting production styles
+
+To iterate styling for the assistant, the Angular development server can proxy
+to a currently running ROCm Docs web server to retrieve its styling. To develop
+with the production Docs styling, run:
+
+```bash
+ng serve --configuration sphinx
+```
+
+This will run the server and proxy the target stylesheets in `index.sphinx.html`
+to their source defined in `proxy.sphinx.conf.json`. To create the server at
+the specified URL, build the ROCm Docs and run a web server (e.g.
+[http-server](https://www.npmjs.com/package/http-server)) to host the compiled
+output. 
+
 ## Building
 
 To build the project run:

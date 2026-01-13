@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DOCm Assistant (Dev - Sphinx Styled)</title>
+
+    <!--
+      Sphinx styling (proxied via Angular dev server):
+      - Start the Sphinx site server (default http-server port is 8080)
+      - Run: ng serve --configuration sphinx
+
+      If your Sphinx server is on a different port, update proxy.sphinx.conf.json.
+    -->
+
+    <!-- Loaded before other Sphinx assets -->
+    <link rel="stylesheet" href="/sphinx-static/_static/vendor/fontawesome/6.5.2/css/all.min.css" />
+    
+    <link rel="stylesheet" href="/sphinx-static/_static/styles/theme.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/styles/sphinx-book-theme.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/styles/bootstrap.css" />
+    
+    <link rel="stylesheet" href="/sphinx-static/_static/sphinx-design.min.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/pygments.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/copybutton.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/custom.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/fonts.css" />
+    
+    <link rel="stylesheet" href="/sphinx-static/_static/rocm_header.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/rocm_footer.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/rocm_custom.css" />
+    <link rel="stylesheet" href="/sphinx-static/_static/rocm_rn.css" />
+
+    <!-- Keep the same icon font your dev page already used -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+    <script defer="defer">
+        function switchTheme() {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+
+            if (!currentTheme) {
+                document.documentElement.setAttribute("data-theme", "dark");    
+            }
+            else {
+                const targetTheme = currentTheme === "light" ? "dark" : "light";
+                document.documentElement.setAttribute("data-theme", targetTheme);
+            }
+        }
+    </script>
+  </head>
+  <body style='background: var(--pst-color-background);'>
+    <button
+      style="
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        border: transparent;
+        align-items: center;
+        justify-content: center;
+      "
+      onclick='switchTheme()'
+    >
+      <span
+        class="material-symbols-outlined"
+        style="font-size: 30px;"
+      >
+        brightness_6
+      </span>
+    </button>
+  </body>
+</html>
