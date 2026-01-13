@@ -13,6 +13,7 @@ import {
   ChatResultStream,
   ReasoningStreamEvent,
   FunctionCallStreamEvent,
+  OutputStreamEvent
 } from './shared/models';
 import { ControlsComponent } from './controls/controls.component';
 import { MessageListComponent } from './conversation/message-list.component';
@@ -282,6 +283,66 @@ export class AssistantComponent implements OnInit {
   }
 
   /**
+   * Handles a non-output stream event (reasoning/tool execution).
+   *
+   * Given a progress event message, this updates the `streamProgress` signal
+   * with a formatted progress label. If the event is a completed tool call,
+   * this also persists a status entry into `messages` with `final=false`.
+   *
+   * @param event The reasoning or tool-call event.
+   */
+  private async onProgressEvent(
+    event: ReasoningStreamEvent | FunctionCallStreamEvent
+  ): Promise<void> {
+    const progress = this.getProgressLabel(event);
+    const parsed_progress = await marked.parse(progress);
+    this.streamProgress.set(parsed_progress);
+
+    // persist completed tool calls
+    if (event.status === 'completed' && event.type === 'function_call') {
+      await this.addMessage(progress, MessageAuthor.Assistant, true, false);
+    }
+  }
+
+  /**
+   * Handles an output stream event (text delta).
+   *
+   * Clears `streamProgress` and updates the streamed assistant output shown in
+   * the UI. To avoid re-parsing Markdown for every small delta, this re-parses
+   * the entire cumulative Markdown only when the delta contains a newline;
+   * otherwise it appends the delta to the existing rendered HTML string.
+   *
+   * @param event The output delta event.
+   * @param cumulative The cumulative output Markdown text, including the
+   * current delta.
+   * @param output The output signal to update, containing the rendered
+   * cumulative response so far.
+   */
+  private async onOutputEvent(
+    event: OutputStreamEvent,
+    cumulative: string,
+    output: WritableSignal<ResourceStreamItem<string>>
+  ): Promise<void> {
+    this.streamProgress.set('');
+
+    // only re-parse entire markdown on newlines, since Markdown formatting
+    // really only changes on line breaks, else append raw delta to previous
+    if (event.delta.includes("\n")) {
+      const parsed_text = await marked.parse(cumulative);
+
+      output.set({ value: parsed_text });
+    }
+    else {
+      output.update((previous_text) => {
+        if ('value' in previous_text) {
+          return { value: `${previous_text.value}${event.delta}` };
+        }
+        return previous_text;
+      });
+    }
+  }
+
+  /**
    * Pipes the incoming stream into the output signal.
    * 
    * The stream can include both output text deltas and progress events.
@@ -298,11 +359,11 @@ export class AssistantComponent implements OnInit {
    * existing formatted output. `streamProgress` is cleared when output deltas
    * are received.
    * 
-   * @param response The streamed response being generated, a stream of Markdown
-   * text deltas.
+   * @param response The streamed response being generated. This stream may
+   * include progress events (reasoning/tool execution) and output text deltas.
    * @param output The output signal to update, contains the entire response
    * generated so far.
-   * @returns The complete, unformatted output text containing all deltas.
+   * @returns The complete Markdown output text containing all deltas.
    */
   private async pipeStream(
     response: ChatResultStream,
@@ -311,37 +372,12 @@ export class AssistantComponent implements OnInit {
     let text: string = "";
     for await (const event of response.stream) {
       if (event.type !== 'output') {
-        const progress = this.getProgressLabel(event);
-        const parsed_progress = await marked.parse(progress);
-        this.streamProgress.set(parsed_progress);
-
-        // persist completed tool calls
-        if (event.status === 'completed' && event.type === 'function_call') {
-          await this.addMessage(progress, MessageAuthor.Assistant, true, false);
-        }
-
+        await this.onProgressEvent(event);
         continue;
       }
 
-      this.streamProgress.set('');
-
-      const delta: string = event.delta;
-      text += delta;
-      // only re-parse entire markdown on newlines, since Markdown formatting
-      // really only changes on line breaks
-      if (delta.includes("\n")) {
-        const parsed_text = await marked.parse(text);
-
-        output.set({ value: parsed_text });
-        continue;
-      }
-      // else append raw delta to previous output
-      output.update((previous_text) => {
-        if ('value' in previous_text) {
-          return { value: `${previous_text.value}${delta}` };
-        }
-        return previous_text;
-      });
+      text += event.delta;
+      await this.onOutputEvent(event, text, output);      
     }
     return text;
   }
@@ -357,8 +393,8 @@ export class AssistantComponent implements OnInit {
    * Once the stream is complete (or errors), the `isAwaiting` signal is set to
    * false.
    * 
-   * @param response The streamed response being generated, a stream of Markdown
-   * text deltas.
+   * @param response The streamed response being generated, a stream of event
+   * messages.
    * @param output The output signal to update, contains the entire response
    * generated so far.
    * @returns A promise that resolves once the stream is fully consumed.

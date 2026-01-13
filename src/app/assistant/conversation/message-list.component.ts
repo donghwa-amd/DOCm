@@ -24,6 +24,7 @@ export class MessageListComponent {
    * A resource reference containing the assistant's streamed response.
    * 
    * This is updated live with the cumulative response output as it's streamed.
+   * The value is rendered as HTML via `innerHTML`.
    */
   @Input() messageStream: ResourceRef<string> = {} as ResourceRef<string>;
 
@@ -33,7 +34,9 @@ export class MessageListComponent {
   @Input() isAwaiting: boolean = false;
 
   /**
-   * The current status of the progress while streaming a response.
+   * The current progress status message while streaming a response.
+   *
+   * This is rendered as HTML via `innerHTML`.
    */
   @Input() progressText: string = '';
 }

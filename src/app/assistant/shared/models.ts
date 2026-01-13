@@ -15,6 +15,8 @@ export interface ChatMessage {
   /**
    * Whether this message represents final output content.
    * 
+   * When omitted or `true`, the message is treated as a final output message.
+   *
    * If `false`, this message is a progress status update, not final output.
    * Only relevant for assistant messages.
    */
