@@ -115,6 +115,12 @@ export class ResponseService {
       if (e instanceof ChatError)
         throw e;
 
+      if (signal?.aborted) {
+        throw new ChatError('The request was cancelled.', {
+          cause: e,
+        });
+      }
+
       if (controller.signal.aborted) {
         throw new ChatError('Sorry, the request timed out. Please try again.', {
           cause: e,

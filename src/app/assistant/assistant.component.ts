@@ -241,10 +241,7 @@ export class AssistantComponent implements OnInit {
    * and makes a request to clear the server-side chat history.
    */
   async clearChat(): Promise<void> {
-    if (this.requestController) {
-      this.requestController.abort();
-      this.requestController = null;
-    }
+    this.requestController?.abort();
 
     this.userRequest.set('');
     this.isAwaiting.set(false);
