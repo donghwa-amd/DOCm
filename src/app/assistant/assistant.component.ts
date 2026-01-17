@@ -75,6 +75,13 @@ export class AssistantComponent implements OnInit {
   private userRequest = signal("");
 
   /**
+   * The abort controller for the current request, if any.
+   * 
+   * Used to cancel ongoing requests when clearing the chat.
+   */
+  private requestController: AbortController | null = null;
+
+  /**
    * The assistant's response stream resource.
    * 
    * Once the user submits a query to the assistant with `onSend`, this signal
@@ -230,10 +237,24 @@ export class AssistantComponent implements OnInit {
   /**
    * Clears the current chat history.
    * 
-   * The client-side chat history is reset, and makes a request to clear the
-   * server-side chat history.
+   * Any ongoing request is cancelled. The client-side chat history is reset,
+   * and makes a request to clear the server-side chat history.
    */
   async clearChat(): Promise<void> {
+    if (this.requestController) {
+      this.requestController.abort();
+      this.requestController = null;
+    }
+
+    this.userRequest.set('');
+    this.isAwaiting.set(false);
+    this.streamProgress.set('');
+
+    if (this.messages.length === 1) {
+      // only welcome message present, no need to clear
+      return;
+    }
+
     this.messages = [];
     await this.addMessage(
       AssistantComponent.WELCOME_MESSAGE,
@@ -373,11 +394,11 @@ export class AssistantComponent implements OnInit {
     for await (const event of response.stream) {
       if (event.type !== 'output') {
         await this.onProgressEvent(event);
-        continue;
       }
-
-      text += event.delta;
-      await this.onOutputEvent(event, text, output);      
+      else {
+        text += event.delta;
+        await this.onOutputEvent(event, text, output);
+      }
     }
     return text;
   }
@@ -449,12 +470,14 @@ export class AssistantComponent implements OnInit {
     const url: string = window.location.href;
     const sessionId: string = await this.storage.getChatId();
 
+    this.requestController = new AbortController();
+
     try {
       const response: ChatResultStream = await this.chat.generateResponse(
         query,
         sessionId,
         url,
-        null
+        this.requestController.signal
       );
  
       // immediately consume the stream in background, return immediately and
@@ -466,15 +489,21 @@ export class AssistantComponent implements OnInit {
       }
     }
     catch (e: any) {
+      if (this.requestController?.signal.aborted) {
+        return;
+      }
+
       const errorOutput: string = e?.message
         ?? 'Sorry, the request failed. Please try again later.';
   
       await this.addMessage(errorOutput, MessageAuthor.Assistant);
   
-      // error occurred, so clear any existing output and append the error
       output.set({ value: "" });
       this.isAwaiting.set(false);
       this.streamProgress.set('');
+    }
+    finally {
+      this.requestController = null;
     }
   }
 }
