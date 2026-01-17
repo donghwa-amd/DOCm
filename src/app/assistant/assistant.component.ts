@@ -382,13 +382,19 @@ export class AssistantComponent implements OnInit {
    * @param output The output signal to update, contains the entire response
    * generated so far.
    * @returns The complete Markdown output text containing all deltas.
+   * @throws Error If the request is aborted.
    */
   private async pipeStream(
     response: ChatResultStream,
-    output: WritableSignal<ResourceStreamItem<string>>
+    output: WritableSignal<ResourceStreamItem<string>>,
+    signal: AbortSignal
   ): Promise<string> {
     let text: string = "";
     for await (const event of response.stream) {
+      if (signal.aborted) {
+        throw new Error('The request was cancelled.');
+      }
+
       if (event.type !== 'output') {
         await this.onProgressEvent(event);
       }
@@ -409,34 +415,43 @@ export class AssistantComponent implements OnInit {
    * added instead.
    * 
    * Once the stream is complete (or errors), the `isAwaiting` signal is set to
-   * false.
+   * false, and the `streamProgress` and output signals are cleared.
+   * 
+   * If the provided abort signal is triggered, the stream consumption is ended
+   * immediately.
    * 
    * @param response The streamed response being generated, a stream of event
    * messages.
    * @param output The output signal to update, contains the entire response
    * generated so far.
+   * @param signal The abort signal to check for cancellation.
    * @returns A promise that resolves once the stream is fully consumed.
    */
   private async consumeStream(
     response: ChatResultStream,
-    output: WritableSignal<ResourceStreamItem<string>>
+    output: WritableSignal<ResourceStreamItem<string>>,
+    signal: AbortSignal
   ): Promise<void> {
     try {
-      const assistantOutput = await this.pipeStream(response, output);
+      const assistantOutput = await this.pipeStream(response, output, signal);
 
       await this.addMessage(assistantOutput, MessageAuthor.Assistant);
     }
     catch (e: any) {
+      if (signal.aborted) {
+        return;
+      }
+
       const errorOutput = 'Sorry, something went wrong. Please refresh and try'
         + ' again later.';
 
       await this.addMessage(errorOutput, MessageAuthor.Assistant);
     }
     finally {
-      // stream is completed, move text from streaming/error state to empty
       output.set({ value: "" });
       this.isAwaiting.set(false);
       this.streamProgress.set('');
+      this.requestController = null;
     }
   }
 
@@ -479,7 +494,7 @@ export class AssistantComponent implements OnInit {
  
       // immediately consume the stream in background, return immediately and
       // allow the stream to unblock inputs
-      this.consumeStream(response, output);
+      this.consumeStream(response, output, this.requestController.signal);
       
       if (response.sessionId && sessionId !== response.sessionId) {
         await this.storage.saveChatId(response.sessionId);
@@ -498,8 +513,6 @@ export class AssistantComponent implements OnInit {
       output.set({ value: "" });
       this.isAwaiting.set(false);
       this.streamProgress.set('');
-    }
-    finally {
       this.requestController = null;
     }
   }

@@ -30,6 +30,8 @@ export class MessageListComponent {
 
   /**
    * Whether a response is currently in progress.
+   * 
+   * Controls whether to display the progress spinners during reasoning.
    */
   @Input() isAwaiting: boolean = false;
 

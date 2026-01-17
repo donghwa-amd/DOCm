@@ -24,7 +24,7 @@
                 <div class="message-body" [innerHTML]="progressText"></div>
             </li>
         }
-        @else if (messageStream.isLoading()) {
+        @else if (isAwaiting && messageStream.isLoading()) {
             <li class="message progress-event" data-turn="assistant">
                 <div class="progress-icon" aria-hidden="true">
                     <span class="progress-icon-spinner"></span>
