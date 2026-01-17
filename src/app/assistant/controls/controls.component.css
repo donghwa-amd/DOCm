@@ -8,4 +8,5 @@
     border: 1px solid var(--pst-color-border);
     border-radius: 20px;
     background-clip: content-box;
+    z-index: 3001;
 }
