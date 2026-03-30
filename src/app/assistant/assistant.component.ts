@@ -1,5 +1,8 @@
 import {
   Component,
+  DestroyRef,
+  ElementRef,
+  inject,
   OnInit,
   resource,
   ResourceStreamItem,
@@ -122,6 +125,9 @@ export class AssistantComponent implements OnInit {
     fetch_page_content: 'Retrieving page content...',
   };
 
+  private el = inject(ElementRef);
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     /**
      * The storage service for persisting client-side chat data.
@@ -180,8 +186,29 @@ export class AssistantComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // open the chat when the page is loaded
+    this.syncTheme();
+    const observer = new MutationObserver(() => this.syncTheme());
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+    this.destroyRef.onDestroy(() => observer.disconnect());
     await this.loadChat();
+  }
+
+  /**
+   * Mirrors the host document's data-theme attribute onto the shadow host element.
+   *
+   * Called on init and on every data-theme mutation so that :host([data-theme])
+   * CSS selectors inside the shadow root respond to the host page's theme toggle.
+   */
+  private syncTheme(): void {
+    const theme = document.documentElement.getAttribute('data-theme');
+    if (theme) {
+      this.el.nativeElement.setAttribute('data-theme', theme);
+    } else {
+      this.el.nativeElement.removeAttribute('data-theme');
+    }
   }
 
   /**

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { signal, type ResourceStreamItem } from '@angular/core';
+import { ElementRef, signal, type ResourceStreamItem } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AssistantComponent } from './assistant.component';
 import { MessageAuthor, type ChatResultStream, type StreamEvent } from './shared/models';
@@ -80,7 +80,11 @@ function makeComponent() {
     generateResponse: vi.fn(),
   };
 
-  TestBed.configureTestingModule({});
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: ElementRef, useValue: new ElementRef(document.createElement('docm-assistant')) },
+    ],
+  });
   const component = TestBed.runInInjectionContext(
     () => new AssistantComponent(storage as any, chat as any)
   );
@@ -94,7 +98,8 @@ async function runPipeStream(component: AssistantComponent, events: StreamEvent[
   };
 
   const output = signal<ResourceStreamItem<string>>({ value: '' });
-  await (component as any).pipeStream(response, output);
+  const { signal: abortSignal } = new AbortController();
+  await (component as any).pipeStream(response, output, abortSignal);
 }
 
 async function runConsumeStream(
@@ -107,7 +112,8 @@ async function runConsumeStream(
     stream: makeEventStream(events),
   };
 
-  await (component as any).consumeStream(response, output);
+  const { signal: abortSignal } = new AbortController();
+  await (component as any).consumeStream(response, output, abortSignal);
 }
 
 describe('AssistantComponent stream events', () => {

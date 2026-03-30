@@ -42,6 +42,7 @@ public/
 skills-lock.json
 .agents/
 .claude/
+.playwright-mcp/
 
 # System files
 .DS_Store
