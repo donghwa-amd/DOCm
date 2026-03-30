@@ -1,33 +1,50 @@
+/* Colors matched to PyData Sphinx Theme (rocm.docs.amd.com) — light mode */
 :host {
-    --docm-color-surface: #f0f0f0;
-    --docm-color-on-surface: #1a1a1a;
-    --docm-color-background: #ffffff;
+    --docm-color-background:    #ffffff;
     --docm-color-on-background: #ffffff;
-    --docm-color-text-base: #1a1a1a;
-    --docm-color-text-muted: #6b6b6b;
-    --docm-color-border: #d0d0d0;
+    --docm-color-surface:       #f3f4f5;  /* pst-gray-100 */
+    --docm-color-on-surface:    #222832;  /* pst-gray-800 */
+    --docm-color-text-base:     #222832;  /* pst-gray-800 */
+    --docm-color-text-muted:    #48566b;  /* pst-gray-600 */
+    --docm-color-border:        #d1d5da;  /* pst-gray-300 */
+    --docm-color-primary:       #0a7d91;  /* pst-teal-500 */
+    --docm-color-link:          #0a7d91;  /* pst-color-link */
+    --docm-color-link-hover:    #8045e5;  /* pst-color-link-hover (pst-violet-500) */
+    --docm-color-code:          #912583;  /* pst-color-inline-code (pst-pink-500) */
+    --docm-color-code-bg:       #f3f4f5;  /* pst-gray-100 */
 }
 
+/* Dark mode — matches PyData Sphinx Theme data-theme="dark" */
 @media (prefers-color-scheme: dark) {
     :host(:not([data-theme])) {
-        --docm-color-surface: #2a2a2a;
-        --docm-color-on-surface: #e8e8e8;
-        --docm-color-background: #1a1a1a;
-        --docm-color-on-background: #2a2a2a;
-        --docm-color-text-base: #e8e8e8;
-        --docm-color-text-muted: #9a9a9a;
-        --docm-color-border: #444444;
+        --docm-color-background:    #121212;
+        --docm-color-on-background: #222832;  /* pst-gray-800 */
+        --docm-color-surface:       #29313d;  /* pst-gray-700 */
+        --docm-color-on-surface:    #f3f4f5;  /* pst-gray-100 */
+        --docm-color-text-base:     #ced6dd;
+        --docm-color-text-muted:    #9ca4af;  /* pst-gray-400 */
+        --docm-color-border:        #48566b;  /* pst-gray-600 */
+        --docm-color-primary:       #528fe4;
+        --docm-color-link:          #528fe4;
+        --docm-color-link-hover:    #e89217;  /* pst-color-secondary (dark) */
+        --docm-color-code:          #f3c7ee;  /* pst-pink-300 */
+        --docm-color-code-bg:       #29313d;  /* pst-gray-700 */
     }
 }
 
 :host([data-theme="dark"]) {
-    --docm-color-surface: #2a2a2a;
-    --docm-color-on-surface: #e8e8e8;
-    --docm-color-background: #1a1a1a;
-    --docm-color-on-background: #2a2a2a;
-    --docm-color-text-base: #e8e8e8;
-    --docm-color-text-muted: #9a9a9a;
-    --docm-color-border: #444444;
+    --docm-color-background:    #121212;
+    --docm-color-on-background: #222832;  /* pst-gray-800 */
+    --docm-color-surface:       #29313d;  /* pst-gray-700 */
+    --docm-color-on-surface:    #f3f4f5;  /* pst-gray-100 */
+    --docm-color-text-base:     #ced6dd;
+    --docm-color-text-muted:    #9ca4af;  /* pst-gray-400 */
+    --docm-color-border:        #48566b;  /* pst-gray-600 */
+    --docm-color-primary:       #528fe4;
+    --docm-color-link:          #528fe4;
+    --docm-color-link-hover:    #e89217;  /* pst-color-secondary (dark) */
+    --docm-color-code:          #f3c7ee;  /* pst-pink-300 */
+    --docm-color-code-bg:       #29313d;  /* pst-gray-700 */
 }
 
 #assistant {

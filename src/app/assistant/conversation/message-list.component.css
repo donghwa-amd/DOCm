@@ -22,6 +22,11 @@
 #message-list .message {
     display: flex;
     flex-direction: row;
+    /* Typography — matched to PyData Sphinx Theme */
+    font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", Arial,
+                 sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-size: 0.875rem;
+    line-height: 1.65;
 }
 
 #message-list .message-body {
@@ -33,10 +38,38 @@
     gap: 12px;
 }
 
+/* Inline code — PST: pst-color-inline-code on pst-color-surface bg */
 #message-list .message code {
-    font-size: .875em;
-    font-weight: 500;
-    padding: .15rem .3rem;
+    font-family: "SFMono-Regular", "Menlo", "Consolas", "Monaco", "Liberation Mono",
+                 "Lucida Console", monospace;
+    font-size: 0.875em;
+    font-weight: 400;
+    color: var(--docm-color-code);
+    background: var(--docm-color-code-bg);
+    padding: 0.1em 0.25em;
+    border-radius: 4px;
+}
+
+/* Block code — reset inline overrides */
+#message-list .message pre code {
+    font-size: 1em;
+    color: inherit;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
+/* Code block container */
+#message-list .message pre {
+    margin: 0;
+    background: var(--docm-color-surface);
+    border: 1px solid var(--docm-color-border);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    font-family: "SFMono-Regular", "Menlo", "Consolas", "Monaco", "Liberation Mono",
+                 "Lucida Console", monospace;
+    font-size: 0.875rem;
 }
 
 #message-list .message p {
@@ -45,22 +78,33 @@
     margin-top: 0.25rem;
 }
 
-#message-list .message pre {
-    margin: 0;
-}
-
-#message-list .message pre code {
-    font-size: 1em;
-}
-
 #message-list .message table {
     width: 100%;
     display: block;
     overflow-x: auto;
 }
 
+/* Headings — PST scale and weight */
+#message-list .message h1 { font-size: 2.5rem;  font-weight: 500; }
+#message-list .message h2 { font-size: 2rem;    font-weight: 500; }
+#message-list .message h3 { font-size: 1.75rem; font-weight: 400; }
+#message-list .message h4 { font-size: 1.5rem;  font-weight: 400; }
+#message-list .message h5 { font-size: 1.25rem; font-weight: 400; }
+#message-list .message h6 { font-size: 1.1rem;  font-weight: 400; }
+
 #message-list .message :is(hr, h1, h2, h3, h4, h5, h6) {
     margin: 0.25em 0;
+}
+
+/* Links — PST teal primary / violet hover */
+#message-list .message a {
+    color: var(--docm-color-link);
+    text-decoration: none;
+}
+
+#message-list .message a:hover {
+    color: var(--docm-color-link-hover);
+    text-decoration: underline;
 }
 
 #message-list .message[data-turn="user"] {
@@ -76,10 +120,6 @@
     color: var(--docm-color-text-base);
 }
 
-#message-list .message[data-turn="assistant"] code {
-    background: var(--docm-color-surface);
-    border-radius: .25rem;
-}
 
 #message-list .message[data-turn="assistant"].progress-event {
     color: var(--docm-color-text-muted);
