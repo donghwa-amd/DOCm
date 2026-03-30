@@ -3,15 +3,15 @@
     width: 100%;
     height: fit-content;
     background-clip: content-box;
-    background-color: var(--pst-color-on-background);
+    background-color: var(--docm-color-on-background);
     border-radius: 2em;
-    border: var(--pst-color-border) 1px solid;
+    border: var(--docm-color-border) 1px solid;
     justify-content: center;
     flex-shrink: 0;
 }
 
 #message-input[aria-disabled="true"] {
-    background: var(--pst-color-border);
+    background: var(--docm-color-border);
     opacity: 0.35;
     pointer-events: none;
     cursor: not-allowed;
@@ -33,8 +33,8 @@
 
 #text-input:valid ~ #send-button {
     visibility: visible;
-    color: var(--pst-color-surface);
-    background: var(--pst-color-on-surface);
+    color: var(--docm-color-surface);
+    background: var(--docm-color-on-surface);
     border: none;
     pointer-events: auto;
 }
@@ -54,9 +54,9 @@
     pointer-events: none;
     align-self: flex-end;
     display: flex;
-    background: var(--pst-color-surface);
-    color: var(--pst-color-on-surface);
-    border: 1px solid var(--pst-color-border);
+    background: var(--docm-color-surface);
+    color: var(--docm-color-on-surface);
+    border: 1px solid var(--docm-color-border);
     align-items: center;
 }
 

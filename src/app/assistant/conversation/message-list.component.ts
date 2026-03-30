@@ -8,8 +8,7 @@ import { ChatMessage } from '../shared/models';
   styleUrl: './message-list.component.css',
   standalone: true,
   imports: [CommonModule],
-  // required for styling to work with innerHTML modifications
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.ShadowDom
 })
 export class MessageListComponent {
   /**

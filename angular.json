@@ -20,7 +20,7 @@
             "tsConfig": "tsconfig.app.json",
             "index": false,
             "assets": [],
-            "styles": []
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "element": {
@@ -49,12 +49,6 @@
               "extractLicenses": false,
               "sourceMap": true
             },
-            "sphinx": {
-              "index": "src/index.sphinx.html",
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
           },
           "defaultConfiguration": "production"
         },
@@ -67,10 +61,6 @@
             "development": {
               "buildTarget": "DOCm:build:development"
             },
-            "sphinx": {
-              "buildTarget": "DOCm:build:sphinx",
-              "proxyConfig": "proxy.sphinx.conf.json"
-            }
           },
           "defaultConfiguration": "development"
         },

@@ -4,8 +4,8 @@
     right: 10px;
     display: flex;
     flex-direction: row;
-    background: var(--pst-color-background, #ffffff);
-    border: 1px solid var(--pst-color-border);
+    background: var(--docm-color-background, #ffffff);
+    border: 1px solid var(--docm-color-border);
     border-radius: 20px;
     background-clip: content-box;
     z-index: 3001;

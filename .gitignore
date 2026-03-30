@@ -39,6 +39,9 @@ testem.log
 /typings
 __screenshots__/
 public/
+skills-lock.json
+.agents/
+.claude/
 
 # System files
 .DS_Store

@@ -1,3 +1,25 @@
+:host {
+    --docm-color-surface: #f0f0f0;
+    --docm-color-on-surface: #1a1a1a;
+    --docm-color-background: #ffffff;
+    --docm-color-on-background: #ffffff;
+    --docm-color-text-base: #1a1a1a;
+    --docm-color-text-muted: #6b6b6b;
+    --docm-color-border: #d0d0d0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :host {
+        --docm-color-surface: #2a2a2a;
+        --docm-color-on-surface: #e8e8e8;
+        --docm-color-background: #1a1a1a;
+        --docm-color-on-background: #2a2a2a;
+        --docm-color-text-base: #e8e8e8;
+        --docm-color-text-muted: #9a9a9a;
+        --docm-color-border: #444444;
+    }
+}
+
 #assistant {
     z-index: 3000;
     position: fixed;
@@ -30,13 +52,13 @@
     justify-content: center;
     border-radius: 50%;
     transition: all 0.2s ease;
-    background: var(--pst-color-surface);
-    color: var(--pst-color-text-base, inherit);
+    background: var(--docm-color-surface);
+    color: var(--docm-color-text-base, inherit);
     position: absolute;
     bottom: 0px;
     right: 0px;
     visibility: visible;
-    border: 1px solid var(--pst-color-border);
+    border: 1px solid var(--docm-color-border);
 }
 
 #toggle span {
@@ -48,7 +70,7 @@
 }
 
 #window {
-    background: var(--pst-color-background);
+    background: var(--docm-color-background);
     height: 80vh;
     min-height: 400px;
     width: 40vh;
@@ -62,7 +84,7 @@
     transition: all 0.1s ease;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--pst-color-border);
+    border: 1px solid var(--docm-color-border);
 }
 
 #assistant.fullscreen #window {
@@ -92,5 +114,17 @@
     padding: 10px;
 }
 
-
-
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}

@@ -4,6 +4,7 @@ import {
   resource,
   ResourceStreamItem,
   signal,
+  ViewEncapsulation,
   WritableSignal,
 } from '@angular/core';
 import { marked } from 'marked';
@@ -27,11 +28,12 @@ import { ChatMessage, MessageAuthor } from './shared/models';
  * subcomponents and logic for managing chat state and interactions.
  */
 @Component({
-  selector: 'assistant',
+  selector: 'docm-assistant',
   standalone: true,
   imports: [ControlsComponent, MessageListComponent, MessageInputComponent],
   templateUrl: './assistant.component.html',
   styleUrl: './assistant.component.css',
+  encapsulation: ViewEncapsulation.ShadowDom,
 })
 export class AssistantComponent implements OnInit {
   /**

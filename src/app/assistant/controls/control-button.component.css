@@ -9,7 +9,7 @@
     border-radius: 50%;
     transition: 0.1s;
     display: flex;
-    color: var(--pst-color-border);
+    color: var(--docm-color-border);
     border: transparent;
     align-items: center;
     background: transparent;
