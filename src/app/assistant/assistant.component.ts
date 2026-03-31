@@ -229,8 +229,6 @@ export class AssistantComponent implements OnInit {
       return;
     }
 
-    await this.addMessage(userInput, MessageAuthor.User);
-
     // lock input immediately; only unlock when the stream completes or errors.
     this.isAwaiting.set(true);
 
@@ -521,6 +519,13 @@ export class AssistantComponent implements OnInit {
         this.requestController.signal
       );
  
+      // if chat cleared while awaiting, prevents adding message after clear
+      if (this.requestController.signal.aborted) {
+        return;
+      }
+
+      await this.addMessage(query, MessageAuthor.User);
+
       // immediately consume the stream in background, return immediately and
       // allow the stream to unblock inputs
       this.consumeStream(response, output, this.requestController.signal);
