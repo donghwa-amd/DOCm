@@ -29,7 +29,10 @@
         </div>
 
         <footer id="footer">
-            <message-input 
+            @if (messages.length === 1) {
+                <p id="disclaimer">AI responses may be inaccurate. Always verify with the official documentation.</p>
+            }
+            <message-input
                 [isAwaiting]="isAwaiting()"
                 (send)="onSend($event)">
             </message-input>

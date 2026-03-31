@@ -145,6 +145,16 @@
     padding: 10px;
 }
 
+#disclaimer {
+    margin: 0 0 6px;
+    padding: 0 16px;
+    font-family: var(--docm-font-sans);
+    font-size: 0.72rem;
+    color: var(--docm-color-text-muted);
+    text-align: center;
+    line-height: 1.4;
+}
+
 .material-symbols-outlined {
     font-family: 'Material Symbols Outlined';
     font-weight: normal;

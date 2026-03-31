@@ -20,9 +20,9 @@
 #text-input {
     box-sizing: border-box;
     padding: 0 24px;
-    margin: 1em 0;
-    line-height: 2em;
-    max-height: 10em;
+    margin: 16px 0;
+    line-height: 24px;
+    max-height: 120px;
     width: 100%;
     border: none;
     outline: none;
@@ -45,24 +45,25 @@
     border: none;
     outline: none;
     cursor: pointer;
-    min-width: 3em;
-    max-width: 3em;
-    min-height: 3em;
-    max-height: 3em;
-    margin: 0.5em;
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    margin: 8px;
+    margin-top: auto;
     aspect-ratio: 1 / 1;
     border-radius: 50%;
     transition: 0.1s;
     pointer-events: none;
-    align-self: flex-end;
     display: flex;
     background: var(--docm-color-surface);
     color: var(--docm-color-on-surface);
     border: 1px solid var(--docm-color-border);
+    box-sizing: border-box;
     align-items: center;
 }
 
 #send-button span {
-    font-size: 2em;
+    font-size: 32px;
     margin: auto;
 }
