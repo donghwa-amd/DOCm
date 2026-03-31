@@ -1,5 +1,9 @@
 /* Colors matched to PyData Sphinx Theme (rocm.docs.amd.com) — light mode */
 :host {
+    --docm-font-sans: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", Arial,
+                      sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --docm-font-mono: "SFMono-Regular", "Menlo", "Consolas", "Monaco", "Liberation Mono",
+                      "Lucida Console", monospace;
     --docm-color-background:    #ffffff;
     --docm-color-on-background: #ffffff;
     --docm-color-surface:       #f3f4f5;  /* pst-gray-100 */

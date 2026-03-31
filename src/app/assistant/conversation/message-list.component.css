@@ -25,8 +25,7 @@
     min-width: 0;
     max-width: 100%;
     /* Typography — matched to PyData Sphinx Theme */
-    font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", Arial,
-                 sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-family: var(--docm-font-sans);
     font-size: 0.875rem;
     line-height: 1.65;
 }
@@ -45,8 +44,7 @@
 
 /* Inline code — PST: pst-color-inline-code on pst-color-surface bg */
 #message-list .message code {
-    font-family: "SFMono-Regular", "Menlo", "Consolas", "Monaco", "Liberation Mono",
-                 "Lucida Console", monospace;
+    font-family: var(--docm-font-mono);
     font-size: 0.875em;
     font-weight: 400;
     color: var(--docm-color-code);
@@ -72,8 +70,7 @@
     border-radius: 4px;
     padding: 0.75rem 1rem;
     overflow-x: auto;
-    font-family: "SFMono-Regular", "Menlo", "Consolas", "Monaco", "Liberation Mono",
-                 "Lucida Console", monospace;
+    font-family: var(--docm-font-mono);
     font-size: 0.875rem;
 }
 

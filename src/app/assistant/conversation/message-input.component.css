@@ -30,6 +30,7 @@
     overflow-y: auto;
     background: transparent;
     color: var(--docm-color-on-surface);
+    font-family: var(--docm-font-sans);
 }
 
 #text-input:valid ~ #send-button {
