@@ -4,7 +4,7 @@
         icon="refresh" 
         title="Clear Chat" 
         (action)="onClear()"
-        aria-label="Clear the current conversation">
+        ariaLabel="Clear the current conversation">
     </control-button>
     
     @if (isFullscreen) {
@@ -13,7 +13,7 @@
             icon="collapse_content" 
             title="Minimize" 
             (action)="onMinimize()"
-            aria-label="Minimize the chat window">
+            ariaLabel="Minimize the chat window">
         </control-button>
     } @else {
         <control-button 
@@ -21,7 +21,7 @@
             icon="expand_content" 
             title="Maximize" 
             (action)="onMaximize()"
-            aria-label="Maximize the chat window">
+            ariaLabel="Maximize the chat window">
         </control-button>
     }
     
@@ -30,6 +30,6 @@
         icon="close" 
         title="Close" 
         (action)="onClose()"
-        aria-label="Close the chat window">
+        ariaLabel="Close the chat window">
     </control-button>
 </div>
