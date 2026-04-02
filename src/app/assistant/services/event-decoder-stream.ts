@@ -47,13 +47,20 @@ export class EventDecoderStream
       case 'reasoning':
         return { type, status };
       case 'function_call': {
-        const name = value['name'];
-        if (typeof name !== 'string') {
+        const message = value['message'];
+        if (typeof message !== 'string') {
           return null;
         }
-        const args = value['arguments'];
-        const validated_args = this.isRecord(args) ? args : undefined;
-        return { type, status, name, arguments: validated_args };
+        const rawSources = value['sources'];
+        const sources = Array.isArray(rawSources)
+          ? rawSources.filter(
+              (s): s is { title: string; url: string } =>
+                this.isRecord(s) &&
+                typeof s['title'] === 'string' &&
+                typeof s['url'] === 'string'
+            )
+          : undefined;
+        return { type, status, message, ...(sources ? { sources } : {}) };
       }
       case 'output': {
         const delta = value['delta'];

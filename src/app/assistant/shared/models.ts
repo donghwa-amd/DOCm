@@ -40,8 +40,8 @@ export type ReasoningStreamEvent = {
 export type FunctionCallStreamEvent = {
   type: 'function_call';
   status: EventStatus;
-  name: string;
-  arguments?: Record<string, unknown>;
+  message: string;
+  sources?: Array<{ title: string; url: string }>;
 };
 
 /**

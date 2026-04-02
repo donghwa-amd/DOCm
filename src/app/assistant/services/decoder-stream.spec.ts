@@ -72,10 +72,10 @@ describe('EventDecoderStream', () => {
   it('decodes NDJSON bytes into StreamEvent objects', async () => {
     const ndjsonLines = [
       '{"type":"reasoning","status":"in_progress"}\n',
-      '{"type":"function_call","status":"in_progress","name":"search","arguments":{"q":"rocm"}}\n',
+      '{"type":"function_call","status":"in_progress","message":"Searching for relevant pages..."}\n',
       '{"type":"output","status":"in_progress","delta":"Hello"}\n',
       '{"type":"output","status":"in_progress","delta":" world"}\n',
-      '{"type":"function_call","status":"completed","name":"search"}\n',
+      '{"type":"function_call","status":"completed","message":"Searching for relevant pages...","sources":[{"title":"ROCm Release Notes","url":"https://rocm.docs.amd.com/en/latest/release/"}]}\n',
       '{"type":"reasoning","status":"completed"}\n',
       '{"type":"output","status":"completed","delta":"!"}\n',
     ];
@@ -92,14 +92,40 @@ describe('EventDecoderStream', () => {
       {
         type: 'function_call',
         status: 'in_progress',
-        name: 'search',
-        arguments: { q: 'rocm' },
+        message: 'Searching for relevant pages...',
       },
       { type: 'output', status: 'in_progress', delta: 'Hello' },
       { type: 'output', status: 'in_progress', delta: ' world' },
-      { type: 'function_call', status: 'completed', name: 'search' },
+      {
+        type: 'function_call',
+        status: 'completed',
+        message: 'Searching for relevant pages...',
+        sources: [{ title: 'ROCm Release Notes', url: 'https://rocm.docs.amd.com/en/latest/release/' }],
+      },
       { type: 'reasoning', status: 'completed' },
       { type: 'output', status: 'completed', delta: '!' },
+    ]);
+  });
+
+  it('parses sources and drops malformed source entries', async () => {
+    const ndjsonLines = [
+      '{"type":"function_call","status":"completed","message":"Done","sources":[{"title":"Valid","url":"https://example.com"},{"title":123,"url":"https://bad.com"},{"notTitle":"x","url":"https://bad2.com"}]}\n',
+    ];
+
+    const byteStream = makeByteStream(ndjsonLines);
+    const eventStream = byteStream
+      .pipeThrough(new DelimitedJSONDecoderStream('\n'))
+      .pipeThrough(new EventDecoderStream());
+
+    const events = await collectEvents(eventStream);
+
+    expect(events).toEqual([
+      {
+        type: 'function_call',
+        status: 'completed',
+        message: 'Done',
+        sources: [{ title: 'Valid', url: 'https://example.com' }],
+      },
     ]);
   });
 
@@ -125,7 +151,7 @@ describe('EventDecoderStream', () => {
     const byteStream = makeByteStream([
       '{"type":"output","status":"in_progress"}\n',
       '{"type":"unknown","status":"in_progress"}\n',
-      '{"type":"function_call","status":"in_progress","name":123}\n',
+      '{"type":"function_call","status":"in_progress","message":123}\n',
       '{"type":"output","status":"completed","delta":"ok"}\n',
     ]);
 

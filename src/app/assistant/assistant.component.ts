@@ -117,13 +117,8 @@ export class AssistantComponent implements OnInit {
     }
   })
 
-  static readonly WELCOME_MESSAGE = 
+  static readonly WELCOME_MESSAGE =
     "Welcome to the ROCm Documentation!\n\nHow can I assist you today?";
-
-  static readonly PROGRESS_LABELS: Record<string, string> = {
-    retrieve_web_links: 'Searching for relevant pages...',
-    fetch_page_content: 'Retrieving page content...',
-  };
 
   private el = inject(ElementRef);
   private destroyRef = inject(DestroyRef);
@@ -291,19 +286,6 @@ export class AssistantComponent implements OnInit {
     await this.storage.clearDatabase();
   }
 
-  private formatURLsList(
-    args: Record<string, unknown> | undefined
-  ): string {
-    const urls: string[] | unknown = args?.['urls'];
-    if (!Array.isArray(urls)) {
-      return '';
-    }
-    return urls
-      .filter((url): url is string => typeof url === 'string')
-      .map((url) => `- ${url}`)
-      .join('\n');
-  }
-
   private getProgressLabel(
     event: ReasoningStreamEvent | FunctionCallStreamEvent
   ): string {
@@ -313,18 +295,7 @@ export class AssistantComponent implements OnInit {
       return 'Thinking...';
     }
 
-    switch (event.name) {
-      case 'retrieve_web_links': {
-        const label = AssistantComponent.PROGRESS_LABELS['retrieve_web_links'];
-        return label;
-      }
-      case 'fetch_page_content': {
-        const label = AssistantComponent.PROGRESS_LABELS['fetch_page_content'];
-        return `${label}\n${this.formatURLsList(event.arguments)}`;
-      }
-      default:
-        return "Processing...";
-    }
+    return event.message;
   }
 
   /**
@@ -339,13 +310,20 @@ export class AssistantComponent implements OnInit {
   private async onProgressEvent(
     event: ReasoningStreamEvent | FunctionCallStreamEvent
   ): Promise<void> {
-    const progress = this.getProgressLabel(event);
-    const parsed_progress = await marked.parse(progress);
-    this.streamProgress.set(parsed_progress);
+    let progressMessage = this.getProgressLabel(event);
+    const parsedProgress = await marked.parse(progressMessage);
+    this.streamProgress.set(parsedProgress);
 
     // persist completed tool calls
     if (event.status === 'completed' && event.type === 'function_call') {
-      await this.addMessage(progress, MessageAuthor.Assistant, true, false);
+      const sources = event.sources;
+      if (sources && sources.length > 0) {
+        const progressSources = `\n${
+          sources.map(s => `- [${s.title}](${s.url})`).join('\n')
+        }`;
+        progressMessage += progressSources;
+      }
+      await this.addMessage(progressMessage, MessageAuthor.Assistant, true, false);
     }
   }
 

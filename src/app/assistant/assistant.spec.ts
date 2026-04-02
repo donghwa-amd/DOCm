@@ -25,32 +25,27 @@ function makeExampleEvents(): StreamEvent[] {
     {
       type: 'function_call',
       status: 'in_progress',
-      name: 'retrieve_web_links',
-      arguments: { query: 'ROCm 7.1.1 latest version' },
+      message: 'Searching for relevant pages...',
     },
     {
       type: 'function_call',
       status: 'completed',
-      name: 'retrieve_web_links',
-      arguments: { query: 'ROCm 7.1.1 latest version' },
+      message: 'Searching for relevant pages...',
     },
     { type: 'reasoning', status: 'in_progress' },
     { type: 'reasoning', status: 'completed' },
     {
       type: 'function_call',
       status: 'in_progress',
-      name: 'fetch_page_content',
-      arguments: {
-        urls: ['https://rocm.docs.amd.com/en/latest/release/versions.html'],
-      },
+      message: 'Retrieving page content...',
     },
     {
       type: 'function_call',
       status: 'completed',
-      name: 'fetch_page_content',
-      arguments: {
-        urls: ['https://rocm.docs.amd.com/en/latest/release/versions.html'],
-      },
+      message: 'Retrieving page content...',
+      sources: [
+        { title: 'ROCm Versions', url: 'https://rocm.docs.amd.com/en/latest/release/versions.html' },
+      ],
     },
     { type: 'reasoning', status: 'in_progress' },
     { type: 'reasoning', status: 'completed' },
@@ -117,47 +112,37 @@ async function runConsumeStream(
 }
 
 describe('AssistantComponent stream events', () => {
-  it('renders fetch_page_content URLs as a Markdown list', async () => {
+  it('shows function_call message in progress spinner', async () => {
     const { component } = makeComponent();
 
     await runPipeStream(component, [
       {
         type: 'function_call',
         status: 'in_progress',
-        name: 'fetch_page_content',
-        arguments: {
-          urls: [
-            'https://rocm.docs.amd.com/en/latest/release/versions.html',
-            'https://rocm.docs.amd.com/en/latest/',
-          ],
-        },
+        message: 'Retrieving page content...',
       },
     ]);
 
     const html = component.streamProgress();
-    expect(html).toContain('<ul>');
-    expect(html)
-      .toContain('https://rocm.docs.amd.com/en/latest/release/versions.html');
-    expect(html).toContain('https://rocm.docs.amd.com/en/latest/');
+    expect(html).toContain('Retrieving page content...');
   });
 
-  it('persists completed tool calls and output from the example stream', async () => {
+  it('persists completed tool calls with source hyperlinks', async () => {
     const { component } = makeComponent();
 
     await runPipeStream(component, makeExampleEvents());
 
-    // 2 tool calls + 1 output message
+    // 2 completed tool calls persisted
     expect(component.messages).toHaveLength(2);
 
     const searchMessage = component.messages[0];
-    expect(searchMessage.content)
-      .toContain(AssistantComponent.PROGRESS_LABELS['retrieve_web_links']);
+    expect(searchMessage.content).toContain('Searching for relevant pages...');
 
     const readMessage = component.messages[1];
-    expect(readMessage.content)
-      .toContain(AssistantComponent.PROGRESS_LABELS['fetch_page_content']);
-    expect(readMessage.content)
-      .toContain('https://rocm.docs.amd.com/en/latest/release/versions.html');
+    expect(readMessage.content).toContain('Retrieving page content...');
+    // sources rendered as hyperlink
+    expect(readMessage.content).toContain('href="https://rocm.docs.amd.com/en/latest/release/versions.html"');
+    expect(readMessage.content).toContain('ROCm Versions');
   });
 
   it('consumeStream appends final output and clears signals', async () => {
